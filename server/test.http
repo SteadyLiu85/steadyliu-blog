@@ -1,0 +1,14 @@
+### 测试 1：发布一篇新文章
+POST http://localhost:5000/api/posts
+Content-Type: application/json
+
+{
+    "title": "我的第一篇全栈博客",
+    "content": "你好，这是从 Node.js 后端通过 Mongoose 存入 MongoDB Atlas 的第一篇文章！",
+    "tags": ["NodeJS", "MongoDB", "MERN"]
+}
+
+###
+
+### 测试 2：获取所有文章列表
+GET http://localhost:5000/api/posts
