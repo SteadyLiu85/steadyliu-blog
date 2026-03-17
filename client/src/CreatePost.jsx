@@ -79,7 +79,6 @@ function CreatePost() {
     for (let i = 0; i < items.length; i++) {
       if (items[i].type.indexOf('image') !== -1) {
         const file = items[i].getAsFile();
-        // 调用我们之前的上传逻辑，但传入一个构造好的 e 对象或直接重构上传逻辑
         uploadFile(file); 
       }
     }
@@ -94,7 +93,7 @@ function CreatePost() {
     }
   };
 
-  // C. 提取通用的上传逻辑 (重构之前的 handleImageUpload)
+  // C. 提取通用的上传逻辑 
   const uploadFile = async (file) => {
     if (!file) return;
     const formData = new FormData();
@@ -137,15 +136,17 @@ function CreatePost() {
       {/* 顶部返回导航 */}
       <button 
         onClick={() => navigate(-1)} 
-        className="group flex items-center gap-2 text-gray-500 hover:text-blue-500 transition-all mb-8 font-bold text-sm"
+        className="group flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-blue-500 transition-all mb-8 font-bold text-sm"
       >
         <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
         取消并返回
       </button>
 
-      <div className="bg-gray-900/40 backdrop-blur-xl border border-gray-800 p-8 md:p-12 rounded-[2.5rem] shadow-2xl relative overflow-hidden">
-        <header className="mb-10 border-b border-gray-800 pb-8">
-          <h1 className="text-3xl font-black text-white flex items-center gap-3">
+      {/* 🟢 适配点：表单主容器背景色 */}
+      <div className="bg-white/80 dark:bg-gray-900/40 backdrop-blur-xl border border-gray-200 dark:border-gray-800 p-8 md:p-12 rounded-[2.5rem] shadow-2xl relative overflow-hidden transition-colors duration-500">
+        <header className="mb-10 border-b border-gray-200 dark:border-gray-800 pb-8 transition-colors">
+          {/* 🟢 适配点：主标题颜色 */}
+          <h1 className="text-3xl font-black text-gray-900 dark:text-white flex items-center gap-3 transition-colors">
             <div className="p-2 bg-blue-500/10 rounded-xl text-blue-500">
               <FileText size={24} />
             </div>
@@ -156,15 +157,16 @@ function CreatePost() {
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* 标题输入 */}
           <div className="space-y-2">
-            <label className="flex items-center gap-2 text-xs font-mono font-black text-gray-500 uppercase tracking-widest ml-1">
+            <label className="flex items-center gap-2 text-xs font-mono font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1 transition-colors">
               <Type size={14} /> Title / 标题
             </label>
+            {/* 🟢 适配点：输入框的白天/黑夜模式 */}
             <input 
               type="text" 
               placeholder="输入标题..." 
               value={post.title}
               onChange={(e) => setPost({...post, title: e.target.value})}
-              className="w-full bg-gray-800/40 border border-gray-700 rounded-2xl px-6 py-4 text-xl font-bold text-white focus:outline-none focus:border-blue-500 focus:bg-gray-800/60 transition-all placeholder:text-gray-700"
+              className="w-full bg-gray-50 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-700 rounded-2xl px-6 py-4 text-xl font-bold text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white dark:focus:bg-gray-800/60 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-700"
               required
             />
           </div>
@@ -172,7 +174,7 @@ function CreatePost() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* 合集输入 */}
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-xs font-mono font-black text-gray-500 uppercase tracking-widest ml-1">
+              <label className="flex items-center gap-2 text-xs font-mono font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1 transition-colors">
                 <BookOpen size={14} /> Series / 合集
               </label>
               <input 
@@ -180,13 +182,13 @@ function CreatePost() {
                 placeholder="例如: CSAPP, RoboMaster..." 
                 value={post.series}
                 onChange={(e) => setPost({...post, series: e.target.value})}
-                className="w-full bg-gray-800/40 border border-gray-700 rounded-2xl px-6 py-3 text-gray-200 focus:outline-none focus:border-blue-500 transition-all placeholder:text-gray-700"
+                className="w-full bg-gray-50 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-700 rounded-2xl px-6 py-3 text-gray-900 dark:text-gray-200 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white dark:focus:bg-gray-800/60 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-700"
               />
             </div>
 
             {/* 标签输入 */}
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-xs font-mono font-black text-gray-500 uppercase tracking-widest ml-1">
+              <label className="flex items-center gap-2 text-xs font-mono font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1 transition-colors">
                 <Hash size={14} /> Tags / 标签
               </label>
               <input 
@@ -194,7 +196,7 @@ function CreatePost() {
                 placeholder="使用英文逗号分隔标签..." 
                 value={post.tags}
                 onChange={(e) => setPost({...post, tags: e.target.value})}
-                className="w-full bg-gray-800/40 border border-gray-700 rounded-2xl px-6 py-3 text-gray-200 focus:outline-none focus:border-blue-500 transition-all placeholder:text-gray-700"
+                className="w-full bg-gray-50 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-700 rounded-2xl px-6 py-3 text-gray-900 dark:text-gray-200 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white dark:focus:bg-gray-800/60 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-700"
               />
             </div>
           </div>
@@ -202,17 +204,16 @@ function CreatePost() {
           {/* 内容编辑区 */}
           <div className="space-y-2">
             <div className="flex justify-between items-end mb-2 ml-1">
-              <label className="flex items-center gap-2 text-xs font-mono font-black text-gray-500 uppercase tracking-widest">
+              <label className="flex items-center gap-2 text-xs font-mono font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest transition-colors">
                 <FileText size={14} /> Content / 内容 (Markdown)
               </label>
               
-              {/* --- 图片上传工具按钮 --- */}
               <div className="flex items-center gap-4">
                 <label className={`
                   flex items-center gap-2 px-4 py-1.5 rounded-xl border transition-all cursor-pointer text-xs font-bold
                   ${isUploading 
-                    ? 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed' 
-                    : 'bg-blue-500/10 border-blue-500/30 text-blue-400 hover:bg-blue-500/20 hover:border-blue-500/50'}
+                    ? 'bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600 cursor-not-allowed' 
+                    : 'bg-blue-500/10 border-blue-500/30 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 hover:border-blue-500/50'}
                 `}>
                   {isUploading ? <Loader2 size={14} className="animate-spin" /> : <ImagePlus size={14} />}
                   {isUploading ? '上传中...' : '插入图片'}
@@ -224,37 +225,43 @@ function CreatePost() {
                     disabled={isUploading}
                   />
                 </label>
-                <div className="hidden md:flex items-center gap-1 text-[10px] text-gray-600 font-mono italic">
-                  <AlertCircle size={10} /> 支持 LaTeX & 代码高亮
+                <div className="hidden md:flex items-center gap-1 text-[10px] text-gray-400 dark:text-gray-600 font-mono italic transition-colors">
+                  <AlertCircle size={10} /> 支持拖拽 / 粘贴上传图片
                 </div>
               </div>
             </div>
 
+            {/* 🟢 适配点：大型文本域的背景和字体颜色 */}
             <textarea
               onPaste={handlePaste}
               onDrop={handleDrop} 
-              onDragOver={(e) => e.preventDefault()} // 必须阻止默认行为，否则拖拽会在浏览器直接打开图片
+              onDragOver={(e) => e.preventDefault()}
               placeholder="开始创作..." 
               value={post.content}
               onChange={(e) => setPost({...post, content: e.target.value})}
               rows="15"
-              className="w-full bg-gray-800/20 border border-gray-700 rounded-[2rem] px-8 py-8 text-gray-300 font-mono leading-relaxed focus:outline-none focus:border-blue-500 focus:bg-gray-800/40 transition-all resize-none placeholder:text-gray-700 scrollbar-hide"
+              className="w-full bg-gray-50 dark:bg-gray-800/20 border border-gray-200 dark:border-gray-700 rounded-[2rem] px-8 py-8 text-gray-800 dark:text-gray-300 font-mono leading-relaxed focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white dark:focus:bg-gray-800/40 transition-all resize-y placeholder:text-gray-400 dark:placeholder:text-gray-700
+              [&::-webkit-scrollbar]:w-2
+              [&::-webkit-scrollbar-track]:bg-transparent
+              [&::-webkit-scrollbar-thumb]:bg-gray-300
+              dark:[&::-webkit-scrollbar-thumb]:bg-gray-700
+              [&::-webkit-scrollbar-thumb]:rounded-full"
               required
             />
           </div>
 
           {/* 操作按钮 */}
-          <div className="flex justify-end gap-4 pt-4">
+          <div className="flex justify-end gap-4 pt-4 border-t border-gray-200 dark:border-gray-800 transition-colors">
             <button 
               type="button"
               onClick={() => navigate(-1)}
-              className="flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-800 transition-all"
+              className="flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-gray-500 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
             >
               <XCircle size={18} /> 舍弃
             </button>
             <button 
               type="submit" 
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-10 py-3 rounded-xl font-bold transition-all shadow-xl shadow-blue-900/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-10 py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-500/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isUploading}
             >
               <Save size={18} /> {id ? '更新文章' : '发布博文'}
