@@ -10,7 +10,8 @@ import FilteredPosts from './FilteredPosts'
 import SeriesList from './SeriesList'
 import TagCloud from './TagCloud'
 import About from './About'
-import AdminLogin from './AdminLogin.jsx' // 🟢 新增：管理员登录页
+import AdminLogin from './AdminLogin.jsx'
+import Dashboard from './Dashboard'
 
 // --- 引入图标与主题上下文 ---
 import { Home, FolderOpen, Tag, User, Sun, Moon, Monitor, ChevronDown, LogOut } from 'lucide-react'
@@ -37,11 +38,11 @@ axios.interceptors.request.use(config => {
 const RequireAuth = ({ children }) => {
   const token = localStorage.getItem('token');
   if (!token) {
-    alert("⛔ 访问受限：只有管理员才可以编辑文章！");
+    alert("⛔ 访问受限：只有管理员才可以访问此页面！");
     // 如果没有 Token，直接重定向回首页
     return <Navigate to="/" replace />;
   }
-  return children; // 如果有 Token，则正常渲染包裹的组件（如 CreatePost）
+  return children; // 如果有 Token，则正常渲染包裹的组件
 };
 
 // ==========================================
@@ -93,17 +94,31 @@ function App() {
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-[#0a0a0c] dark:text-gray-200 transition-colors duration-500">
       <div className="w-full mx-auto p-4 md:p-8 relative">
         
-        {/* 🌓 顶部右侧控制区 (主题切换 + 登出) */}
+        {/* 🌓 顶部右侧控制区 (主题切换 + 登出/大盘) */}
         <div className="absolute top-4 right-4 md:top-8 md:right-8 z-[100] flex items-center gap-4" ref={menuRef}>
           
-          {/* 🟢 如果登录了，显示红色的登出按钮 */}
+          {/* 🟢 如果登录了，显示后台入口和登出按钮 */}
           {isLoggedIn && (
-            <button 
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold font-mono hover:bg-red-100 dark:hover:bg-red-500/20 transition-all shadow-sm"
-            >
-              <LogOut size={12} /> LOGOUT
-            </button>
+            <div className="flex items-center gap-3">
+              <NavLink 
+                to="/dashboard"
+                className={({ isActive }) => 
+                  `flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold font-mono transition-all shadow-sm
+                  ${isActive 
+                    ? 'bg-blue-600 text-white border-blue-600' 
+                    : 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20'}`
+                }
+              >
+                DASHBOARD
+              </NavLink>
+
+              <button 
+                onClick={handleLogout}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold font-mono hover:bg-red-100 dark:hover:bg-red-500/20 transition-all shadow-sm"
+              >
+                <LogOut size={12} /> LOGOUT
+              </button>
+            </div>
           )}
 
           {/* 主题下拉按钮 */}
@@ -187,10 +202,17 @@ function App() {
             <Route path="/series/:name" element={<FilteredPosts type="series" />} />
             <Route path="/tags/:name" element={<FilteredPosts type="tag" />} />
             
-            {/* 🟢 新增：你的隐藏暗门 */}
+            {/* 你的隐藏暗门 */}
             <Route path="/steady-admin" element={<div className="max-w-4xl mx-auto"><AdminLogin /></div>} />
 
-            {/* 🟢 修改：给特权操作加上 RequireAuth 保护罩 */}
+            {/* 🟢 新增：后台大盘路由 */}
+            <Route path="/dashboard" element={
+              <RequireAuth>
+                <div className="max-w-6xl mx-auto"><Dashboard /></div>
+              </RequireAuth>
+            } />
+
+            {/* 特权操作路由 */}
             <Route path="/create" element={
               <RequireAuth>
                 <div className="max-w-4xl mx-auto"><CreatePost /></div>

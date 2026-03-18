@@ -13,18 +13,30 @@ import {
   AlertCircle,
   ImagePlus,
   Loader2,
-  Send // 🟢 新增发送图标
+  Send,
+  CalendarClock // 🟢 新增时间图标
 } from 'lucide-react'
+
+// 🟢 新增：时间格式化函数 (将 Date 转换为 HTML input 需要的格式)
+const formatDateTime = (date) => {
+  if (!date) return '';
+  const d = new Date(date);
+  const offset = d.getTimezoneOffset() * 60000;
+  return new Date(d - offset).toISOString().slice(0, 16);
+};
 
 function CreatePost() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const [isUploading, setIsUploading] = useState(false) // 图片上传状态
+  const [isUploading, setIsUploading] = useState(false) 
+  
+  // 🟢 初始化状态：默认带上当前系统时间
   const [post, setPost] = useState({ 
     title: '', 
     content: '', 
     series: '', 
-    tags: '' 
+    tags: '',
+    createdAt: formatDateTime(new Date()) 
   })
 
   useEffect(() => {
@@ -36,7 +48,9 @@ function CreatePost() {
             title: data.title,
             content: data.content,
             series: data.series || '',
-            tags: data.tags ? data.tags.join(', ') : ''
+            tags: data.tags ? data.tags.join(', ') : '',
+            // 🟢 编辑模式：读取数据库原有的时间
+            createdAt: formatDateTime(data.createdAt)
           })
         })
     }
@@ -173,7 +187,8 @@ function CreatePost() {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* 🟢 布局变更为 3 列，加入时间选择器 */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* 合集输入 */}
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-xs font-mono font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1 transition-colors">
@@ -199,6 +214,19 @@ function CreatePost() {
                 value={post.tags}
                 onChange={(e) => setPost({...post, tags: e.target.value})}
                 className="w-full bg-gray-50 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-700 rounded-2xl px-6 py-3 text-gray-900 dark:text-gray-200 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white dark:focus:bg-gray-800/60 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-700"
+              />
+            </div>
+
+            {/* 🟢 时间选择器 */}
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-xs font-mono font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1 transition-colors">
+                <CalendarClock size={14} /> Date / 创作时间
+              </label>
+              <input 
+                type="datetime-local" 
+                value={post.createdAt}
+                onChange={(e) => setPost({...post, createdAt: e.target.value})}
+                className="w-full bg-gray-50 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-700 rounded-2xl px-6 py-3 text-gray-900 dark:text-gray-200 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white dark:focus:bg-gray-800/60 transition-all font-mono"
               />
             </div>
           </div>

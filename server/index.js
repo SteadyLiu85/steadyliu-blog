@@ -220,11 +220,18 @@ app.get('/api/tags', async (req, res) => {
 // 3. 创建文章的接口 (🛡️ 已加锁)
 app.post('/api/posts', verifyToken, async (req, res) => {
     try {
-        // 🟢 接收 status 参数
-        const { title, content, tags, series, status } = req.body;
+        const { title, content, tags, series, status, createdAt } = req.body;
+        
+        // 1. 先创建对象
         const newPost = new Post({ title, content, tags, series, status });
+        
+        // 2. 🟢 强行覆盖时间：必须在 save 之前显式赋值，才能盖过 Mongoose 的自动生成
+        if (createdAt) {
+            newPost.createdAt = new Date(createdAt);
+        }
+
         const savedPost = await newPost.save(); // 存入数据库
-        console.log("📝 新文章已存入数据库:", savedPost.title, "状态:", savedPost.status);
+        console.log("📝 新文章已存入:", savedPost.title, "日期:", savedPost.createdAt);
         res.status(201).json(savedPost);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -234,14 +241,30 @@ app.post('/api/posts', verifyToken, async (req, res) => {
 // 4. 更新文章 (修改) (🛡️ 已加锁)
 app.put('/api/posts/:id', verifyToken, async (req, res) => {
     try {
-        // 🟢 接收 status 参数
-        const { title, content, series, tags, status } = req.body; 
+        const { title, content, series, tags, status, createdAt } = req.body; 
+        
+        const updateData = { 
+            title, 
+            content, 
+            series, 
+            tags, 
+            status,
+            updatedAt: new Date() // 手动更新最后修改时间
+        };
+        
+        // 前端传了时间，就覆盖进去
+        if (createdAt) {
+            updateData.createdAt = new Date(createdAt);
+        }
+
         const updatedPost = await Post.findByIdAndUpdate(
             req.params.id, 
-            { title, content, series, tags, status }, 
-            { new: true } 
+            updateData, 
+            // 🟢 修复警告：使用 returnDocument: 'after' 替代 new: true
+            { returnDocument: 'after', timestamps: false } 
         );
-        console.log("🔄 文章已更新:", updatedPost.title, "状态:", updatedPost.status);
+        
+        console.log("🔄 文章已更新:", updatedPost.title, "最终落库日期:", updatedPost.createdAt);
         res.json(updatedPost);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -287,6 +310,6 @@ app.post('/api/upload', verifyToken, upload.single('image'), (req, res) => {
 // --- 启动服务器 ---
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`🚀 服务器正在端口 ${PORT} 上运行...`);
-    console.log(`🔗 本地 API 访问地址: http://localhost:${PORT}/api/posts`);
+    console.log(`服务器正在端口 ${PORT} 上运行...`);
+    console.log(`本地 API 访问地址: http://localhost:${PORT}/api/posts`);
 });
