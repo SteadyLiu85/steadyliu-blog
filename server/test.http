@@ -1,14 +1,39 @@
-### 测试 1：发布一篇新文章
-POST http://localhost:5000/api/posts
+### ==================================
+### 🔐 1. 鉴权与安全测试区域
+### ==================================
+
+### 1.1 初始化管理员账号 (⚠️ 仅执行一次，用于把 steady 存入 MongoDB)
+POST http://localhost:5000/api/auth/setup
+Content-Type: application/json
+
+### 
+
+### 1.2 测试登录 (账号: steady, 密码: 123456) -> 成功会返回很长的 Token
+POST http://localhost:5000/api/auth/login
 Content-Type: application/json
 
 {
-    "title": "我的第一篇全栈博客",
-    "content": "你好，这是从 Node.js 后端通过 Mongoose 存入 MongoDB Atlas 的第一篇文章！",
-    "tags": ["NodeJS", "MongoDB", "MERN"]
+    "username": "steady",
+    "password": "050622"
 }
 
-###
+### ==================================
+### 📝 2. 文章操作测试区域
+### ==================================
 
-### 测试 2：获取所有文章列表
+### 2.1 获取所有文章列表 (游客可见，不需要 Token)
 GET http://localhost:5000/api/posts
+
+### 
+
+### 2.2 发布一篇新文章 (⚠️ 注意：现在必须带上 Token 才能成功，请把下方的 Token 换成你登录获取的)
+POST http://localhost:5000/api/posts
+Content-Type: application/json
+Authorization: Bearer 这里粘贴你刚才获取的那一大串Token
+
+{
+    "title": "带锁的第一篇文章",
+    "content": "现在只有我自己，带着 JWT 令牌，才能向 MongoDB 写入数据了！这感觉太有安全感了。",
+    "series": "随笔",
+    "tags": ["NodeJS", "JWT", "安全"]
+}

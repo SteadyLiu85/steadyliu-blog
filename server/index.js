@@ -6,6 +6,12 @@ const Post = require('./models/Post'); // 引入刚刚定义的模型
 const multer = require('multer');
 const path = require('path');
 
+// === 新增：引入鉴权相关依赖 ===
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const User = require('./models/User'); // 引入用户模型
+// =================================
+
 const app = express();
 
 // --- 中间件配置 ---
@@ -25,6 +31,69 @@ if (!MONGO_URI) {
         .catch((err) => console.error("❌ 数据库连接失败:", err));
 }
 
+// === 新增：JWT 鉴权拦截器 (门神中间件) ===
+const verifyToken = (req, res, next) => {
+    // 从请求头 Authorization: Bearer <token> 中提取 token
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+        return res.status(401).json({ message: '访问被拒绝，缺少身份令牌' });
+    }
+
+    try {
+        // 使用 .env 中的秘钥验证 Token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded; // 将用户信息挂载到请求对象上
+        next(); // 验证通过，放行
+    } catch (err) {
+        res.status(403).json({ message: '令牌无效或已过期' });
+    }
+};
+// =========================================
+
+// === 新增：身份认证路由 (初始化 & 登录) ===
+
+// 1. 初始化账号 (仅第一次使用，创建完后可注释)
+app.post('/api/auth/setup', async (req, res) => {
+    try {
+        const existingUser = await User.findOne({ username: 'steady' });
+        if (existingUser) return res.status(400).json({ message: '管理员账号已存在' });
+
+        // 将 123456 替换为你想要的真实密码
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash('050622', salt);
+
+        const admin = new User({ username: 'steady', password: hashedPassword });
+        await admin.save();
+        
+        res.status(201).json({ message: '管理员账号 steady 初始化成功' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 2. 登录接口 (验证密码并签发 Token)
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        const user = await User.findOne({ username });
+        if (!user) return res.status(404).json({ message: '用户不存在' });
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) return res.status(400).json({ message: '密码错误' });
+
+        // 签发 Token，有效期 7 天
+        const token = jwt.sign(
+            { id: user._id, username: user.username }, 
+            process.env.JWT_SECRET, 
+            { expiresIn: '7d' }
+        );
+        res.json({ token, username: user.username, message: '登录成功' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+// =========================================
+
 // --- API 路由接口 ---
 
 // 1. 基础测试接口
@@ -32,7 +101,7 @@ app.get('/', (req, res) => {
     res.json({ message: "后端正常运行，且已连接数据库！" });
 });
 
-// 2. 获取所有文章的接口
+// 2. 获取所有文章的接口 (无需鉴权，所有人可看)
 app.get('/api/posts', async (req, res) => {
     try {
         // .sort({ createdAt: -1 }) 表示按时间倒序排列（最新的在前面）
@@ -43,7 +112,7 @@ app.get('/api/posts', async (req, res) => {
     }
 });
 
-// 获取单篇文章详情的接口
+// 获取单篇文章详情的接口 (无需鉴权)
 app.get('/api/posts/:id', async (req, res) => {
     try {
         const post = await Post.findById(req.params.id);
@@ -57,7 +126,7 @@ app.get('/api/posts/:id', async (req, res) => {
     }
 });
 
-// 筛选接口：根据标签或合集查文章
+// 筛选接口：根据标签或合集查文章 (无需鉴权)
 app.get('/api/posts/filter/data', async (req, res) => {
     const { tag, series } = req.query;
     let query = {};
@@ -70,7 +139,7 @@ app.get('/api/posts/filter/data', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 获取所有合集的列表
+// 获取所有合集的列表 (无需鉴权)
 app.get('/api/series', async (req, res) => {
     try {
         // distinct 会返回数据库中所有不重复的 series 字段值
@@ -113,7 +182,7 @@ app.get('/api/series/stats', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 获取所有标签的列表
+// 获取所有标签的列表 (无需鉴权)
 app.get('/api/tags', async (req, res) => {
     try {
         const tagCounts = await Post.aggregate([
@@ -125,8 +194,8 @@ app.get('/api/tags', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 3. 创建文章的接口
-app.post('/api/posts', async (req, res) => {
+// 3. 创建文章的接口 (🛡️ 已加锁)
+app.post('/api/posts', verifyToken, async (req, res) => {
     try {
         const { title, content, tags } = req.body;
         const newPost = new Post({ title, content, tags });
@@ -138,8 +207,8 @@ app.post('/api/posts', async (req, res) => {
     }
 });
 
-// 4. 更新文章 (修改)
-app.put('/api/posts/:id', async (req, res) => {
+// 4. 更新文章 (修改) (🛡️ 已加锁)
+app.put('/api/posts/:id', verifyToken, async (req, res) => {
     try {
         const { title, content, series, tags } = req.body; // 确保这里解构了 series
         const updatedPost = await Post.findByIdAndUpdate(
@@ -154,8 +223,8 @@ app.put('/api/posts/:id', async (req, res) => {
     }
 });
 
-// 5. 删除文章
-app.delete('/api/posts/:id', async (req, res) => {
+// 5. 删除文章 (🛡️ 已加锁)
+app.delete('/api/posts/:id', verifyToken, async (req, res) => {
     try {
         const result = await Post.findByIdAndDelete(req.params.id);
         if (result) {
@@ -167,13 +236,6 @@ app.delete('/api/posts/:id', async (req, res) => {
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
-});
-
-// --- 启动服务器 ---
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`🚀 服务器正在端口 ${PORT} 上运行...`);
-    console.log(`🔗 本地 API 访问地址: http://localhost:${PORT}/api/posts`);
 });
 
 // 上传图片
@@ -193,11 +255,18 @@ const upload = multer({ storage: storage });
 // 2. 静态资源托管（这样前端才能通过 URL 访问到图片）
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// 3. 上传接口
-app.post('/api/upload', upload.single('image'), (req, res) => {
+// 3. 上传接口 (🛡️ 已加锁，防止别人随便往你的服务器塞图片)
+app.post('/api/upload', verifyToken, upload.single('image'), (req, res) => {
   if (!req.file) return res.status(400).json({ message: '上传失败' });
   
   // 返回图片在服务器上的访问地址
   const imageUrl = `http://localhost:5000/uploads/${req.file.filename}`;
   res.json({ url: imageUrl });
+});
+
+// --- 启动服务器 ---
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+    console.log(`服务器正在端口 ${PORT} 上运行...`);
+    console.log(`本地 API 访问地址: http://localhost:${PORT}/api/posts`);
 });
