@@ -78,11 +78,14 @@ function PostDetail() {
       },
       { rootMargin: '-10% 0% -45% 0%' }
     );
-    document.querySelectorAll('h2, h3').forEach((h) => observer.observe(h));
+    // 确保 DOM 渲染完再观察
+    setTimeout(() => {
+      document.querySelectorAll('h2, h3').forEach((h) => observer.observe(h));
+    }, 100);
     return () => observer.disconnect();
   }, [post]);
 
-  if (!post) return <div className="text-gray-900 dark:text-white p-20 text-center font-mono animate-pulse uppercase">Knowledge Synchronizing...</div>
+  if (!post) return <div className="text-gray-500 dark:text-gray-400 p-20 text-center font-mono animate-pulse uppercase">Knowledge Synchronizing...</div>
 
   const tocEntries = generateTOC(post.content);
 
@@ -100,7 +103,7 @@ function PostDetail() {
       <div className="max-w-[1800px] mx-auto">
         <button 
           onClick={() => navigate(-1)} 
-          className="group text-blue-500 hover:text-blue-400 font-bold my-8 flex items-center gap-2 transition-all"
+          className="group text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 font-bold my-8 flex items-center gap-2 transition-all"
         >
           <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
           返回列表
@@ -110,26 +113,24 @@ function PostDetail() {
           
           {/* --- 正文区域：85% 宽度 --- */}
           <div className="lg:w-[85%] w-full min-w-0">
-            {/* 加上了 bg-white dark:bg-gray-900/30 让白天模式有个白底卡片 */}
-            <article className="bg-white/80 dark:bg-gray-900/30 backdrop-blur-2xl p-8 md:p-16 rounded-[2.5rem] border border-gray-200 dark:border-gray-800 shadow-2xl relative overflow-hidden transition-colors duration-500">
+            <article className="bg-white/80 dark:bg-gray-900/30 backdrop-blur-2xl p-8 md:p-16 rounded-[2.5rem] border border-gray-200 dark:border-gray-800 shadow-sm dark:shadow-2xl relative overflow-hidden transition-colors duration-500">
               <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-500/5 blur-[120px] pointer-events-none"></div>
 
-              <header className="mb-12 border-b border-gray-200 dark:border-gray-800 pb-10">
-                {/* 加上了 text-gray-900 dark:text-white */}
+              <header className="mb-12 border-b border-gray-200 dark:border-gray-800 pb-10 transition-colors">
                 <h1 className="text-5xl md:text-7xl font-black text-gray-900 dark:text-white mb-8 tracking-tighter leading-tight transition-colors">
                   {post.title}
                 </h1>
                 
-                <div className="flex flex-wrap gap-8 text-base items-center text-gray-500 font-mono">
+                <div className="flex flex-wrap gap-8 text-base items-center text-gray-500 dark:text-gray-400 font-mono transition-colors">
                   <span className="flex items-center gap-2">
-                    <Calendar size={18} className="text-blue-500/60" /> 
+                    <Calendar size={18} className="text-blue-500/80" /> 
                     {new Date(post.createdAt).toLocaleDateString()}
                   </span>
                   
                   {post.series && post.series !== '未分类' && (
                     <Link 
                       to={`/series/${encodeURIComponent(post.series)}`}
-                      className="group flex items-center gap-2 bg-blue-500/10 hover:bg-blue-500/20 px-4 py-1.5 rounded-full text-blue-600 dark:text-blue-400 border border-blue-500/20 transition-all"
+                      className="group flex items-center gap-2 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 px-4 py-1.5 rounded-full text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 transition-all"
                     >
                       <FolderOpen size={16} />
                       <span className="font-bold tracking-wider">{post.series}</span>
@@ -141,7 +142,7 @@ function PostDetail() {
                       <Link 
                         key={tag} 
                         to={`/tags/${encodeURIComponent(tag)}`}
-                        className="flex items-center gap-1 text-gray-500 hover:text-blue-500 dark:hover:text-blue-400 transition-all group/tag"
+                        className="flex items-center gap-1 text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all group/tag"
                       >
                         <Hash size={14} className="opacity-40 group-hover/tag:opacity-100" />
                         <span>{tag}</span>
@@ -151,40 +152,40 @@ function PostDetail() {
                 </div>
               </header>
               
-
-              <div className="text-gray-700 dark:text-gray-300 transition-colors">
+              {/* 🟢 Markdown 渲染区定制 */}
+              <div className="text-gray-800 dark:text-gray-300 transition-colors">
                 <ReactMarkdown 
                   remarkPlugins={[remarkMath]} 
                   rehypePlugins={[rehypeKatex, rehypeHighlight]}
                   components={{
                     h2: ({node, ...props}) => {
                       const id = slugify(props.children.toString());
-                      // 加上 text-gray-900 dark:text-white
-                      return <h2 id={id} className="text-4xl font-black text-gray-900 dark:text-white mt-16 mb-8 border-b border-gray-200 dark:border-gray-800 pb-2 tracking-tight transition-colors" {...props} />
+                      return <h2 id={id} className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white mt-16 mb-8 border-b border-gray-200 dark:border-gray-800 pb-4 tracking-tight transition-colors" {...props} />
                     },
                     h3: ({node, ...props}) => {
                       const id = slugify(props.children.toString());
-                      // 加上 text-blue-600 dark:text-blue-300
-                      return <h3 id={id} className="text-2xl font-bold text-blue-600 dark:text-blue-300 mt-10 mb-4 transition-colors" {...props} />
+                      return <h3 id={id} className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-10 mb-4 transition-colors" {...props} />
                     },
-                    p: ({node, ...props}) => <p className="text-xl leading-[1.8] mb-8 text-gray-700 dark:text-gray-300 transition-colors" {...props} />,
-                    ul: ({node, ...props}) => <ul className="list-disc list-inside space-y-3 mb-8 text-xl" {...props} />,
-                    pre: ({node, ...props}) => <pre className="rounded-2xl p-8 bg-gray-900 border border-gray-800 my-10 overflow-x-auto shadow-inner" {...props} />,
-                    blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-blue-500 bg-blue-500/5 p-6 italic my-10 rounded-r-2xl text-xl" {...props} />
+                    p: ({node, ...props}) => <p className="text-lg md:text-xl leading-loose mb-8 text-gray-700 dark:text-gray-300 transition-colors" {...props} />,
+                    ul: ({node, ...props}) => <ul className="list-disc list-inside space-y-3 mb-8 text-lg md:text-xl text-gray-700 dark:text-gray-300 marker:text-blue-500 transition-colors" {...props} />,
+                    ol: ({node, ...props}) => <ol className="list-decimal list-inside space-y-3 mb-8 text-lg md:text-xl text-gray-700 dark:text-gray-300 marker:text-blue-500 transition-colors" {...props} />,
+                    // 注意：代码块始终保持深色背景，匹配 Atom One Dark 高亮主题
+                    pre: ({node, ...props}) => <pre className="rounded-2xl p-6 md:p-8 bg-[#282c34] border border-gray-800 my-10 overflow-x-auto shadow-xl text-[15px] leading-relaxed" {...props} />,
+                    blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-blue-500 bg-blue-50/50 dark:bg-blue-500/10 p-6 italic my-10 rounded-r-2xl text-lg md:text-xl text-gray-600 dark:text-gray-400 transition-colors" {...props} />
                   }}
                 >
                   {post.content}
                 </ReactMarkdown>
               </div>
 
-              <footer className="mt-20 pt-10 border-t border-gray-200 dark:border-gray-800 flex justify-between items-center">
+              <footer className="mt-20 pt-10 border-t border-gray-200 dark:border-gray-800 flex justify-between items-center transition-colors">
                   <Link 
                     to={`/edit/${post._id}`} 
-                    className="group flex items-center gap-3 bg-gray-100 dark:bg-gray-800/50 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 px-8 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 transition-all font-black text-sm tracking-widest shadow-xl"
+                    className="group flex items-center gap-3 bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 px-8 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 transition-all font-black text-sm tracking-widest shadow-sm hover:shadow-md"
                   >
                     <Edit3 size={18} className="text-blue-500" /> EDIT POST
                   </Link>
-                  <div className="text-gray-500 dark:text-gray-600 text-[10px] font-mono uppercase tracking-[0.4em] flex items-center gap-2">
+                  <div className="text-gray-400 dark:text-gray-600 text-[10px] font-mono uppercase tracking-[0.4em] flex items-center gap-2 transition-colors">
                     Finalized <Clock size={14} />
                   </div>
               </footer>
@@ -200,17 +201,19 @@ function PostDetail() {
               [&::-webkit-scrollbar-thumb]:rounded-full
               hover:[&::-webkit-scrollbar-thumb]:bg-blue-500/50
               transition-colors">
-              <div className="text-blue-500 mb-10 font-black text-xs uppercase tracking-[0.3em] flex items-center gap-2">
+              <div className="text-blue-600 dark:text-blue-500 mb-8 font-black text-xs uppercase tracking-[0.3em] flex items-center gap-2">
                 <Layers size={16} strokeWidth={3} /> CONTENTS
               </div>
-              <nav className="flex flex-col gap-">
+              
+              {/* 🟢 修复：补齐 gap-3 */}
+              <nav className="flex flex-col gap-3">
                 {tocEntries.map((item, index) => {
                   const isActive = activeId === item.id;
                   
-                  // 🟢 完美修复：用 Tailwind 类名接管颜色，摒弃内联 style
+                  // 🟢 修复：完善昼夜模式下的层级颜色
                   const colorClass = isActive 
-                    ? 'text-blue-500 font-bold' 
-                    : (item.level === 2 ? 'text-gray-900 dark:text-white font-black' : 'text-gray-500 dark:text-gray-400 font-medium');
+                    ? 'text-blue-600 dark:text-blue-400 font-bold' 
+                    : (item.level === 2 ? 'text-gray-800 dark:text-gray-300 font-black' : 'text-gray-500 dark:text-gray-500 font-medium');
 
                   return (
                     <a
@@ -225,12 +228,10 @@ function PostDetail() {
                           window.scrollTo({ top, behavior: 'smooth' });
                         }
                       }}
-                      // 🟢 把 colorClass 拼接到 className 里
-                      className={`transition-all duration-200 block w-full cursor-pointer leading-tight py-1 ${
+                      className={`transition-all duration-300 block w-full cursor-pointer leading-tight py-1 ${
                         isActive ? 'translate-x-2' : 'hover:opacity-70'
                       } ${colorClass}`}
                       style={{ 
-                        // 删掉了写死的 color: textColor
                         fontSize: item.level === 2 ? '15px' : '13px',
                         textTransform: 'none',
                         marginLeft: item.level === 3 ? '1.5rem' : '0px',
