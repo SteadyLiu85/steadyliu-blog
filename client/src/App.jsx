@@ -10,7 +10,7 @@ import FilteredPosts from './FilteredPosts'
 import SeriesList from './SeriesList'
 import TagCloud from './TagCloud'
 import About from './About'
-import AdminLogin from './AdminLogin' // 🟢 新增：管理员登录页
+import AdminLogin from './AdminLogin.jsx' // 🟢 新增：管理员登录页
 
 // --- 引入图标与主题上下文 ---
 import { Home, FolderOpen, Tag, User, Sun, Moon, Monitor, ChevronDown, LogOut } from 'lucide-react'

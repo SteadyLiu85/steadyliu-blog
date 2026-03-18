@@ -12,7 +12,8 @@ import {
   ChevronLeft,
   AlertCircle,
   ImagePlus,
-  Loader2
+  Loader2,
+  Send // 🟢 新增发送图标
 } from 'lucide-react'
 
 function CreatePost() {
@@ -111,11 +112,13 @@ function CreatePost() {
     }
   };
 
-  const handleSubmit = async (e) => {
+  // 🟢 核心修改：接收 postStatus 参数 (published 或 draft)
+  const handleSubmit = async (e, postStatus) => {
     e.preventDefault()
     const postData = {
       ...post,
-      tags: post.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '')
+      tags: post.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== ''),
+      status: postStatus // 🟢 告诉后端这篇文章的状态
     }
 
     try {
@@ -142,10 +145,9 @@ function CreatePost() {
         取消并返回
       </button>
 
-      {/* 🟢 适配点：表单主容器背景色 */}
+      {/* 表单主容器背景色 */}
       <div className="bg-white/80 dark:bg-gray-900/40 backdrop-blur-xl border border-gray-200 dark:border-gray-800 p-8 md:p-12 rounded-[2.5rem] shadow-2xl relative overflow-hidden transition-colors duration-500">
         <header className="mb-10 border-b border-gray-200 dark:border-gray-800 pb-8 transition-colors">
-          {/* 🟢 适配点：主标题颜色 */}
           <h1 className="text-3xl font-black text-gray-900 dark:text-white flex items-center gap-3 transition-colors">
             <div className="p-2 bg-blue-500/10 rounded-xl text-blue-500">
               <FileText size={24} />
@@ -154,13 +156,13 @@ function CreatePost() {
           </h1>
         </header>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        {/* 🟢 移除了原先绑定在 form 上的 onSubmit */}
+        <form className="space-y-8">
           {/* 标题输入 */}
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-xs font-mono font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1 transition-colors">
               <Type size={14} /> Title / 标题
             </label>
-            {/* 🟢 适配点：输入框的白天/黑夜模式 */}
             <input 
               type="text" 
               placeholder="输入标题..." 
@@ -231,7 +233,6 @@ function CreatePost() {
               </div>
             </div>
 
-            {/* 🟢 适配点：大型文本域的背景和字体颜色 */}
             <textarea
               onPaste={handlePaste}
               onDrop={handleDrop} 
@@ -250,22 +251,35 @@ function CreatePost() {
             />
           </div>
 
-          {/* 操作按钮 */}
-          <div className="flex justify-end gap-4 pt-4 border-t border-gray-200 dark:border-gray-800 transition-colors">
+          {/* 🟢 修改：操作按钮区域 - 分裂为“存草稿”和“正式发布” */}
+          <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-800 transition-colors">
             <button 
               type="button"
               onClick={() => navigate(-1)}
-              className="flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-gray-500 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-gray-500 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
             >
               <XCircle size={18} /> 舍弃
             </button>
-            <button 
-              type="submit" 
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-10 py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-500/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={isUploading}
-            >
-              <Save size={18} /> {id ? '更新文章' : '发布博文'}
-            </button>
+            
+            <div className="flex items-center gap-4">
+              <button 
+                type="button" 
+                onClick={(e) => handleSubmit(e, 'draft')}
+                className="flex items-center gap-2 bg-transparent border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-8 py-2.5 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isUploading || !post.title || !post.content}
+              >
+                <Save size={18} /> 存为草稿
+              </button>
+
+              <button 
+                type="button" 
+                onClick={(e) => handleSubmit(e, 'published')}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-10 py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-500/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed border-2 border-transparent"
+                disabled={isUploading || !post.title || !post.content}
+              >
+                <Send size={18} /> {id ? '更新发布' : '正式发布'}
+              </button>
+            </div>
           </div>
         </form>
       </div>
