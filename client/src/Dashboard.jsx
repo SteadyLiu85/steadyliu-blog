@@ -18,7 +18,7 @@ function Dashboard() {
   const fetchPosts = async () => {
     try {
       // 因为全局拦截器的存在，这里会自动带上你的 Token，获取包含草稿的全部文章
-      const res = await axios.get('http://localhost:5000/api/posts');
+      const res = await axios.get('/api/posts');
       setPosts(res.data);
     } catch (err) {
       console.error("获取文章失败", err);
@@ -34,7 +34,7 @@ function Dashboard() {
   const handleDelete = async (id, title) => {
     if (window.confirm(`⚠️ 警告：确定要永久删除《${title}》吗？`)) {
       try {
-        await axios.delete(`http://localhost:5000/api/posts/${id}`);
+        await axios.delete(`/api/posts/${id}`);
         // 删除成功后，刷新列表
         fetchPosts();
       } catch (err) {

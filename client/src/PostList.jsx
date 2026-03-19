@@ -11,7 +11,7 @@ function PostList() {
   const [searchQuery, setSearchQuery] = useState('')
 
   const fetchPosts = () => {
-    axios.get('http://localhost:5000/api/posts')
+    axios.get('/api/posts')
       .then(res => setPosts(res.data))
       .catch(err => console.error("获取失败:", err))
   }
@@ -24,7 +24,7 @@ function PostList() {
     e.preventDefault();
     if (window.confirm('确定要删除吗？这份记录将永久消失。')) {
       try {
-        await axios.delete(`http://localhost:5000/api/posts/${id}`)
+        await axios.delete(`/api/posts/${id}`)
         fetchPosts()
       } catch (err) {
         alert('删除失败')

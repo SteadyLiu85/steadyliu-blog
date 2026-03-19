@@ -18,9 +18,12 @@ import { Home, FolderOpen, Tag, User, Sun, Moon, Monitor, ChevronDown, LogOut } 
 import { useTheme } from './ThemeContext' 
 
 // ==========================================
-// 🚀 全局 Axios 拦截器 (核心魔法)
+// 全局 Axios 拦截
 // ==========================================
 // 每次前端发送任何 axios 请求前，都会自动执行这个拦截器
+
+axios.defaults.baseURL = '';
+
 axios.interceptors.request.use(config => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -33,7 +36,7 @@ axios.interceptors.request.use(config => {
 });
 
 // ==========================================
-// 🛡️ 路由守卫组件 (保护特权区域)
+// 路由保护特权
 // ==========================================
 const RequireAuth = ({ children }) => {
   const token = localStorage.getItem('token');
@@ -46,14 +49,14 @@ const RequireAuth = ({ children }) => {
 };
 
 // ==========================================
-// 🎨 主 App 组件
+// 主 App 组件
 // ==========================================
 function App() {
   const { theme, updateTheme } = useTheme()
   const [showMenu, setShowMenu] = useState(false)
   const menuRef = useRef(null)
   
-  // 🟢 判断当前是否处于登录状态
+  // 判断当前是否处于登录状态
   const isLoggedIn = !!localStorage.getItem('token'); 
 
   // 点击外部关闭下拉框
@@ -67,7 +70,7 @@ function App() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // 🟢 登出逻辑
+  // 登出逻辑
   const handleLogout = () => {
     if (window.confirm("确定要退出管理员模式吗？")) {
       localStorage.removeItem('token');
@@ -94,10 +97,10 @@ function App() {
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-[#0a0a0c] dark:text-gray-200 transition-colors duration-500">
       <div className="w-full mx-auto p-4 md:p-8 relative">
         
-        {/* 🌓 顶部右侧控制区 (主题切换 + 登出/大盘) */}
+        {/* 顶部右侧控制区 (主题切换 + 登出) */}
         <div className="absolute top-4 right-4 md:top-8 md:right-8 z-[100] flex items-center gap-4" ref={menuRef}>
           
-          {/* 🟢 如果登录了，显示后台入口和登出按钮 */}
+          {/* 如果登录，显示后台入口和登出按钮 */}
           {isLoggedIn && (
             <div className="flex items-center gap-3">
               <NavLink 
@@ -202,10 +205,10 @@ function App() {
             <Route path="/series/:name" element={<FilteredPosts type="series" />} />
             <Route path="/tags/:name" element={<FilteredPosts type="tag" />} />
             
-            {/* 你的隐藏暗门 */}
+            {/* admin登录地址 */}
             <Route path="/steady-admin" element={<div className="max-w-4xl mx-auto"><AdminLogin /></div>} />
 
-            {/* 🟢 新增：后台大盘路由 */}
+            {/* 后台大盘路由 */}
             <Route path="/dashboard" element={
               <RequireAuth>
                 <div className="max-w-6xl mx-auto"><Dashboard /></div>

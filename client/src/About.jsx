@@ -2,7 +2,6 @@ import { User, Mail, Github, Code, Award, Target, Tv } from 'lucide-react'
 
 function About() {
 
-  // 现代化的邮箱处理逻辑：点击复制到剪贴板，而不是强行拉起系统邮件客户端
   const handleCopyEmail = (e) => {
     e.preventDefault();
     navigator.clipboard.writeText('steadyliu85@gmail.com');
@@ -26,7 +25,7 @@ function About() {
         </div>
       </div>
 
-      {/* 个人简介卡片 */}
+      {/* 个人简介 */}
       <div className="bg-white/80 dark:bg-gray-900/30 backdrop-blur-xl p-8 md:p-12 rounded-[2.5rem] border border-gray-200 dark:border-gray-800 shadow-xl transition-colors duration-500">
         <h2 className="text-xl font-black text-gray-900 dark:text-white mb-6 flex items-center gap-2 border-b border-gray-200 dark:border-gray-800 pb-4 transition-colors">
           <Code className="text-blue-500" size={20} /> ABOUT ME

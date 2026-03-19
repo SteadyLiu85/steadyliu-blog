@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 
-// --- 图标与渲染核心 ---
+// --- 图标与渲染 ---
 import { 
   ArrowLeft, 
   Calendar, 
@@ -26,7 +26,7 @@ const slugify = (text) => {
     .toLowerCase()
     .trim()
     .replace(/\s+/g, '-')      // 空格转连字符
-    .replace(/[^\w\u4e00-\u9fa5-]+/g, '') // 核心：删掉括号、斜杠等特殊字符，保留中文
+    .replace(/[^\w\u4e00-\u9fa5-]+/g, '') // 删括号、斜杠等特殊字符，保留中文
 };
 
 function PostDetail() {
@@ -36,14 +36,14 @@ function PostDetail() {
   const [scrollProgress, setScrollProgress] = useState(0)
   const navigate = useNavigate()
 
-  // 1. 获取数据
+  // 获取数据
   useEffect(() => {
-    axios.get(`http://localhost:5000/api/posts/${id}`)
+    axios.get(`/api/posts/${id}`)
       .then(res => setPost(res.data))
       .catch(err => console.error(err))
   }, [id])
 
-  // 2. 阅读进度监听
+  // 阅读进度监听
   useEffect(() => {
     const handleScroll = () => {
       const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
@@ -55,7 +55,7 @@ function PostDetail() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // 3. 目录生成逻辑
+  // 目录生成
   const generateTOC = (text) => {
     const toc = [];
     text.split('\n').forEach((line) => {
@@ -68,7 +68,7 @@ function PostDetail() {
     return toc;
   };
 
-  // 4. 滚动追踪
+  // 滚动追踪
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -152,7 +152,7 @@ function PostDetail() {
                 </div>
               </header>
               
-              {/* 🟢 Markdown 渲染区定制 */}
+              {/* Markdown 渲染 */}
               <div className="text-gray-800 dark:text-gray-300 transition-colors">
                 <ReactMarkdown 
                   remarkPlugins={[remarkMath]} 
@@ -169,7 +169,6 @@ function PostDetail() {
                     p: ({node, ...props}) => <p className="text-lg md:text-xl leading-loose mb-8 text-gray-700 dark:text-gray-300 transition-colors" {...props} />,
                     ul: ({node, ...props}) => <ul className="list-disc list-inside space-y-3 mb-8 text-lg md:text-xl text-gray-700 dark:text-gray-300 marker:text-blue-500 transition-colors" {...props} />,
                     ol: ({node, ...props}) => <ol className="list-decimal list-inside space-y-3 mb-8 text-lg md:text-xl text-gray-700 dark:text-gray-300 marker:text-blue-500 transition-colors" {...props} />,
-                    // 注意：代码块始终保持深色背景，匹配 Atom One Dark 高亮主题
                     pre: ({node, ...props}) => <pre className="rounded-2xl p-6 md:p-8 bg-[#282c34] border border-gray-800 my-10 overflow-x-auto shadow-xl text-[15px] leading-relaxed" {...props} />,
                     blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-blue-500 bg-blue-50/50 dark:bg-blue-500/10 p-6 italic my-10 rounded-r-2xl text-lg md:text-xl text-gray-600 dark:text-gray-400 transition-colors" {...props} />
                   }}
@@ -205,12 +204,12 @@ function PostDetail() {
                 <Layers size={16} strokeWidth={3} /> CONTENTS
               </div>
               
-              {/* 🟢 修复：补齐 gap-3 */}
+              {/* 补齐 gap-3 */}
               <nav className="flex flex-col gap-3">
                 {tocEntries.map((item, index) => {
                   const isActive = activeId === item.id;
                   
-                  // 🟢 修复：完善昼夜模式下的层级颜色
+                  // 完善昼夜模式颜色
                   const colorClass = isActive 
                     ? 'text-blue-600 dark:text-blue-400 font-bold' 
                     : (item.level === 2 ? 'text-gray-800 dark:text-gray-300 font-black' : 'text-gray-500 dark:text-gray-500 font-medium');

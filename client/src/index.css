@@ -1,33 +1,33 @@
 @import "tailwindcss";
 
-/* 2. v4 专属：开启手动暗黑模式，只要标签有 .dark 就生效 */
+/* 手动开暗色，只要标签有 .dark 就生效 */
 @custom-variant dark (&:where(.dark, .dark *));
 @layer base {
-  /* ☀️ 亮色模式 (默认) */
+  /* 亮色模式 (默认) */
   :root {
-    --color-bg-base: 249 250 251;       /* 对应 gray-50：最底层的页面背景 */
-    --color-bg-surface: 255 255 255;    /* 对应 white：卡片、文章主体背景 */
-    --color-bg-hover: 243 244 246;      /* 对应 gray-100：按钮或区块悬浮色 */
+    --color-bg-base: 249 250 251;       /*  gray-50：最底层的页面背景 */
+    --color-bg-surface: 255 255 255;    /*  white：卡片、文章主体背景 */
+    --color-bg-hover: 243 244 246;      /*  gray-100：按钮或区块悬浮色 */
     
-    --color-text-primary: 17 24 39;     /* 对应 gray-900：大标题、核心文字 */
-    --color-text-secondary: 107 114 128;/* 对应 gray-500：次要文字、图标 */
+    --color-text-primary: 17 24 39;     /*  gray-900：大标题、核心文字 */
+    --color-text-secondary: 107 114 128;/*  gray-500：次要文字、图标 */
     
-    --color-border: 229 231 235;        /* 对应 gray-200：分割线、边框 */
+    --color-border: 229 231 235;        /*  gray-200：分割线、边框 */
     
-    --color-accent: 59 130 246;         /* 对应 blue-500：主题强调色 */
+    --color-accent: 59 130 246;         /*  blue-500：主题强调色 */
   }
 
-  /* 🌙 暗色模式 (当 html 标签有 .dark 时生效) */
+  /* 暗色模式 (当 html 标签有 .dark 时生效) */
   .dark {
-    --color-bg-base: 10 10 12;          /* 对应你的 #0a0a0c：极客黑底色 */
-    --color-bg-surface: 17 24 39;       /* 对应 gray-900：卡片底色 */
-    --color-bg-hover: 31 41 55;         /* 对应 gray-800：悬浮色 */
+    --color-bg-base: 10 10 12;          /*  #0a0a0c：背景黑底色 */
+    --color-bg-surface: 17 24 39;       /*  gray-900：卡片底色 */
+    --color-bg-hover: 31 41 55;         /*  gray-800：悬浮色 */
     
-    --color-text-primary: 243 244 246;  /* 对应 gray-100：亮白文字 */
-    --color-text-secondary: 156 163 175;/* 对应 gray-400：暗灰文字 */
+    --color-text-primary: 243 244 246;  /*  gray-100：亮白文字 */
+    --color-text-secondary: 156 163 175;/*  gray-400：暗灰文字 */
     
-    --color-border: 31 41 55;           /* 对应 gray-800：暗色边框 */
+    --color-border: 31 41 55;           /*  gray-800：暗色边框 */
     
-    --color-accent: 59 130 246;         /* 对应 blue-500：暗色下蓝色可以保持不变 */
+    --color-accent: 59 130 246;         /*  blue-500：暗色下蓝色可以保持不变 */
   }
 }

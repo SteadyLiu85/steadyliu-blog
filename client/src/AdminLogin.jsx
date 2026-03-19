@@ -17,16 +17,16 @@ function AdminLogin() {
     setError('');
 
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', {
+      const res = await axios.post('/api/auth/login', {
         username,
         password
       });
 
-      // 登录成功！将 Token 存入浏览器的 localStorage (本地存储)
+      // 登录成功！将 Token 存入浏览器的 localStorage 
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('username', res.data.username);
       
-      // 登录成功后，直接传送回首页
+      // 登录成功后传送回首页
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || '认证失败，请检查网络');

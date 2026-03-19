@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
-// --- 1. 引入图标 ---
 import { 
   Library, 
   Clock, 
@@ -14,7 +13,7 @@ function SeriesList() {
   const [seriesStats, setSeriesStats] = useState([])
 
   useEffect(() => {
-    axios.get('http://localhost:5000/api/series/stats')
+    axios.get('/api/series/stats')
       .then(res => setSeriesStats(res.data))
       .catch(err => console.error("获取统计数据失败:", err))
   }, [])
@@ -50,16 +49,14 @@ function SeriesList() {
           
           return (
             <Link key={item.name} to={`/series/${encodeURIComponent(item.name)}`}>
-              {/* 🟢 适配点：白天白底磨砂，夜晚深灰底磨砂 */}
               <div className="group relative bg-white/80 dark:bg-gray-900/40 backdrop-blur-xl border border-gray-200 dark:border-gray-800 p-8 rounded-3xl hover:border-blue-500/50 hover:bg-blue-50/50 dark:hover:bg-gray-800/40 transition-all duration-500 shadow-sm hover:shadow-xl dark:shadow-2xl overflow-hidden min-h-[260px] flex flex-col justify-between text-left">
                 
-                {/* 装饰性背景 */}
+                {/* 背景 */}
                 <div className={`absolute -top-20 -right-20 w-40 h-40 blur-[80px] opacity-10 group-hover:opacity-30 transition-all ${isLongTerm ? 'bg-emerald-500' : 'bg-blue-500'}`}></div>
 
                 <div className="relative z-10">
                   <div className="flex justify-between items-start mb-6">
                     <div>
-                      {/* 🟢 适配点：标签徽章的颜色适配 */}
                       <span className={`flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded mb-3 border transition-colors ${
                         isLongTerm 
                           ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20' 

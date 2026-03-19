@@ -10,21 +10,21 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     const root = window.document.documentElement;
     
-    // 监听系统主题变化的函数
+    // 监听主题变化的函数
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     
     const applyTheme = () => {
       let activeTheme = theme;
       
-      // 如果是 system 模式，动态获取系统状态
+      // 如果是 system 模式，获取系统状态
       if (theme === 'system') {
         activeTheme = mediaQuery.matches ? 'dark' : 'light';
       }
 
-      // ⚠️ 关键：直接操作 classList 强制覆盖
+      // 直接操作 classList 强制覆盖
       if (activeTheme === 'dark') {
         root.classList.add('dark');
-        root.style.colorScheme = 'dark'; // 顺便告诉浏览器滚动条也换色
+        root.style.colorScheme = 'dark'; // 滚动条换色
       } else {
         root.classList.remove('dark');
         root.style.colorScheme = 'light';

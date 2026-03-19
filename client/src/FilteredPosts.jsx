@@ -1,22 +1,21 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import axios from 'axios'
-// --- 1. 引入图标 ---
+// --- 引入图标 ---
 import { Tag, FolderOpen, Calendar, ArrowLeft, ChevronRight, Hash, Loader2 } from 'lucide-react'
 
-function FilteredPosts({ type }) { // type 是 'tag' 或 'series'
+function FilteredPosts({ type }) {
   const { name } = useParams()
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     setLoading(true)
-    // 【核心修复】：使用 encodeURIComponent 对中文参数（如“待办”）进行编码
     const encodedName = encodeURIComponent(name)
     
     const url = type === 'tag' 
-      ? `http://localhost:5000/api/posts/filter/data?tag=${encodedName}`
-      : `http://localhost:5000/api/posts/filter/data?series=${encodedName}`
+      ? `/api/posts/filter/data?tag=${encodedName}`
+      : `/api/posts/filter/data?series=${encodedName}`
     
     axios.get(url)
       .then(res => {
@@ -40,14 +39,13 @@ function FilteredPosts({ type }) { // type 是 'tag' 或 'series'
         返回{type === 'tag' ? '标签云' : '合集列表'}
       </Link>
 
-      {/* --- 2. 增强型页面头部 --- */}
+      {/* --- 页面头部 --- */}
       <div className="mb-16 border-l-4 border-blue-600 pl-8 relative transition-colors">
         <div className="absolute -left-1 top-0 h-full w-1 bg-blue-400 blur-sm"></div>
         <div className="flex items-center gap-3 text-gray-500 dark:text-gray-400 mb-2 font-mono text-sm uppercase tracking-[0.2em] transition-colors">
           {type === 'tag' ? <Tag size={16} /> : <FolderOpen size={16} />}
           {type === 'tag' ? 'Filtered by Tag' : 'Series Collection'}
         </div>
-        {/* 🟢 适配点：标题在白天变为深色 */}
         <h1 className="text-5xl font-black text-gray-900 dark:text-white tracking-tight transition-colors flex items-center">
           {type === 'tag' && <span className="text-blue-500 mr-2">#</span>}
           {name}
@@ -57,7 +55,7 @@ function FilteredPosts({ type }) { // type 是 'tag' 或 'series'
         </p>
       </div>
 
-      {/* --- 3. 结果列表 --- */}
+      {/* --- 结果列表 --- */}
       <div className="grid gap-8">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 text-gray-500 dark:text-gray-400 font-mono italic transition-colors">
@@ -73,13 +71,12 @@ function FilteredPosts({ type }) { // type 是 'tag' 或 'series'
             <Link 
               key={post._id} 
               to={`/post/${post._id}`} 
-              // 🟢 适配点：白天采用白色微透背景和淡灰边框，夜晚保留深黑极客感
               className="group block bg-white/80 dark:bg-gray-900/20 backdrop-blur-sm p-8 rounded-[2.5rem] border border-gray-200 dark:border-gray-800 
                          hover:border-blue-500/40 dark:hover:border-blue-500/50 hover:bg-blue-50/50 dark:hover:bg-blue-500/5 
                          shadow-sm hover:shadow-xl dark:hover:shadow-[0_0_40px_rgba(59,130,246,0.1)] 
                          transition-all duration-300 relative overflow-hidden text-left"
             >
-              {/* 背景微弱装饰 */}
+              {/* 背景装饰 */}
               <div className="absolute top-0 right-0 p-6 text-gray-300 dark:text-gray-700 opacity-0 group-hover:opacity-20 transition-all duration-500 group-hover:translate-x-2">
                 <ChevronRight size={64} />
               </div>

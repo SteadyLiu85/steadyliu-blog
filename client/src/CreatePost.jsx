@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import axios from 'axios'
-// --- 1. 引入图标 ---
+// --- 引入图标 ---
 import { 
   Type, 
   BookOpen, 
@@ -14,10 +14,10 @@ import {
   ImagePlus,
   Loader2,
   Send,
-  CalendarClock // 🟢 新增时间图标
+  CalendarClock
 } from 'lucide-react'
 
-// 🟢 新增：时间格式化函数 (将 Date 转换为 HTML input 需要的格式)
+// 时间格式化 (将 Date 转换为 HTML input 需要的格式)
 const formatDateTime = (date) => {
   if (!date) return '';
   const d = new Date(date);
@@ -30,7 +30,7 @@ function CreatePost() {
   const navigate = useNavigate()
   const [isUploading, setIsUploading] = useState(false) 
   
-  // 🟢 初始化状态：默认带上当前系统时间
+  // 初始：默认带上当前系统时间
   const [post, setPost] = useState({ 
     title: '', 
     content: '', 
@@ -41,7 +41,7 @@ function CreatePost() {
 
   useEffect(() => {
     if (id) {
-      axios.get(`http://localhost:5000/api/posts/${id}`)
+      axios.get(`/api/posts/${id}`)
         .then(res => {
           const data = res.data
           setPost({
@@ -49,19 +49,19 @@ function CreatePost() {
             content: data.content,
             series: data.series || '',
             tags: data.tags ? data.tags.join(', ') : '',
-            // 🟢 编辑模式：读取数据库原有的时间
+            // 编辑模式：读取数据库原有的时间
             createdAt: formatDateTime(data.createdAt)
           })
         })
     }
   }, [id])
 
-  // --- 核心修复：图片上传处理逻辑 ---
+  // --- 图片上传处理 ---
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // 限制文件大小 (例如 5MB)
+    // 限制文件大小 (5MB)
     if (file.size > 5 * 1024 * 1024) {
       alert("文件过大，请上传 5MB 以内的图片");
       return;
@@ -72,7 +72,7 @@ function CreatePost() {
 
     setIsUploading(true);
     try {
-      const res = await axios.post('http://localhost:5000/api/upload', formData, {
+      const res = await axios.post('/api/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       
@@ -88,7 +88,7 @@ function CreatePost() {
     }
   };
 
-  // A. 处理粘贴图片 (Clipboard)
+  // 处理粘贴图片 (Clipboard)
   const handlePaste = async (e) => {
     const items = e.clipboardData.items;
     for (let i = 0; i < items.length; i++) {
@@ -99,7 +99,7 @@ function CreatePost() {
     }
   };
 
-  // B. 处理拖拽图片 (Drag & Drop)
+  // 处理拖拽图片 (Drag & Drop)
   const handleDrop = async (e) => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
@@ -108,7 +108,7 @@ function CreatePost() {
     }
   };
 
-  // C. 提取通用的上传逻辑 
+  // 提取通用的上传逻辑 
   const uploadFile = async (file) => {
     if (!file) return;
     const formData = new FormData();
@@ -116,7 +116,7 @@ function CreatePost() {
 
     setIsUploading(true);
     try {
-      const res = await axios.post('http://localhost:5000/api/upload', formData);
+      const res = await axios.post('/api/upload', formData);
       const imageMarkdown = `\n![图片描述](${res.data.url})\n`;
       setPost(prev => ({ ...prev, content: prev.content + imageMarkdown }));
     } catch (err) {
@@ -126,20 +126,20 @@ function CreatePost() {
     }
   };
 
-  // 🟢 核心修改：接收 postStatus 参数 (published 或 draft)
+  // 接收 postStatus 参数 (published 或 draft)
   const handleSubmit = async (e, postStatus) => {
     e.preventDefault()
     const postData = {
       ...post,
       tags: post.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== ''),
-      status: postStatus // 🟢 告诉后端这篇文章的状态
+      status: postStatus // 告知后端文章的状态
     }
 
     try {
       if (id) {
-        await axios.put(`http://localhost:5000/api/posts/${id}`, postData)
+        await axios.put(`/api/posts/${id}`, postData)
       } else {
-        await axios.post('http://localhost:5000/api/posts', postData)
+        await axios.post('/api/posts', postData)
       }
       navigate('/')
     } catch (err) {
@@ -159,7 +159,7 @@ function CreatePost() {
         取消并返回
       </button>
 
-      {/* 表单主容器背景色 */}
+      {/* 表单主容器背景 */}
       <div className="bg-white/80 dark:bg-gray-900/40 backdrop-blur-xl border border-gray-200 dark:border-gray-800 p-8 md:p-12 rounded-[2.5rem] shadow-2xl relative overflow-hidden transition-colors duration-500">
         <header className="mb-10 border-b border-gray-200 dark:border-gray-800 pb-8 transition-colors">
           <h1 className="text-3xl font-black text-gray-900 dark:text-white flex items-center gap-3 transition-colors">
@@ -170,7 +170,6 @@ function CreatePost() {
           </h1>
         </header>
 
-        {/* 🟢 移除了原先绑定在 form 上的 onSubmit */}
         <form className="space-y-8">
           {/* 标题输入 */}
           <div className="space-y-2">
@@ -187,7 +186,6 @@ function CreatePost() {
             />
           </div>
 
-          {/* 🟢 布局变更为 3 列，加入时间选择器 */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* 合集输入 */}
             <div className="space-y-2">
@@ -196,7 +194,7 @@ function CreatePost() {
               </label>
               <input 
                 type="text" 
-                placeholder="例如: CSAPP, RoboMaster..." 
+                placeholder="输入合集名..." 
                 value={post.series}
                 onChange={(e) => setPost({...post, series: e.target.value})}
                 className="w-full bg-gray-50 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-700 rounded-2xl px-6 py-3 text-gray-900 dark:text-gray-200 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white dark:focus:bg-gray-800/60 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-700"
@@ -217,7 +215,7 @@ function CreatePost() {
               />
             </div>
 
-            {/* 🟢 时间选择器 */}
+            {/* 时间选择 */}
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-xs font-mono font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1 transition-colors">
                 <CalendarClock size={14} /> Date / 创作时间
@@ -231,7 +229,7 @@ function CreatePost() {
             </div>
           </div>
 
-          {/* 内容编辑区 */}
+          {/* 内容编辑 */}
           <div className="space-y-2">
             <div className="flex justify-between items-end mb-2 ml-1">
               <label className="flex items-center gap-2 text-xs font-mono font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest transition-colors">
@@ -279,7 +277,7 @@ function CreatePost() {
             />
           </div>
 
-          {/* 🟢 修改：操作按钮区域 - 分裂为“存草稿”和“正式发布” */}
+          {/* “存草稿”和“正式发布” */}
           <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-800 transition-colors">
             <button 
               type="button"
