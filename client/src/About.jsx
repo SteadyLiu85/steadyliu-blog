@@ -63,7 +63,7 @@ function About() {
         </div>
       </div>
 
-      {/* 社交链接 */}
+      {/* 链接 */}
       <div className="flex justify-center gap-6">
         {/* GitHub */}
         <a href="https://github.com/SteadyLiu85" target="_blank" rel="noreferrer" className="p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl text-gray-600 dark:text-gray-400 hover:text-blue-500 hover:border-blue-500/50 hover:-translate-y-1 transition-all shadow-sm">

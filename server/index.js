@@ -121,7 +121,7 @@ app.get('/api/posts', async (req, res) => {
     }
 });
 
-// 获取单篇文章详情的接口 (无需鉴权，因为能拿到 ID 一般都是允许看的)
+// 获取单篇文章详情的接口 (无需鉴权)
 app.get('/api/posts/:id', async (req, res) => {
     try {
         const post = await Post.findById(req.params.id);
@@ -176,7 +176,7 @@ app.get('/api/series/stats', async (req, res) => {
             } }
         ]);
 
-        // 配置中心：
+        // 配置合集长度：
         const goals = {
             "CS:APP": 12,
             "Java学习": 20,
@@ -214,7 +214,7 @@ app.get('/api/tags', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 3. 创建文章的接口
+// 创建文章的接口
 app.post('/api/posts', verifyToken, async (req, res) => {
     try {
         const { title, content, tags, series, status, createdAt } = req.body;
@@ -233,7 +233,7 @@ app.post('/api/posts', verifyToken, async (req, res) => {
     }
 });
 
-// 4. 更新文章
+// 更新文章
 app.put('/api/posts/:id', verifyToken, async (req, res) => {
     try {
         const { title, content, series, tags, status, createdAt } = req.body; 
@@ -265,7 +265,7 @@ app.put('/api/posts/:id', verifyToken, async (req, res) => {
     }
 });
 
-// 5. 删除文章
+// 删除文章
 app.delete('/api/posts/:id', verifyToken, async (req, res) => {
     try {
         const result = await Post.findByIdAndDelete(req.params.id);
