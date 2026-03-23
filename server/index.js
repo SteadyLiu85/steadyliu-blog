@@ -179,10 +179,13 @@ app.get('/api/series/stats', async (req, res) => {
         // 配置合集长度：
         const goals = {
             "CS:APP": 12,
-            "Java学习": 20,
-            "随笔": 0,          // 长期更新设0
-            "项目周报": 0,
-            "功能": 2
+            "Blog功能开发": 3,
+            "视觉SLAM十四讲": 8,          // 长期更新设0
+            "MERN Stack": 5,
+            "嵌入式开发纪实": 0,
+            "前端随想": 0,
+            "工具和库": 0,
+            "具身智能杂录": 0
         };
 
         const result = stats

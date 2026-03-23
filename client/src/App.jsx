@@ -2,8 +2,6 @@ import { Routes, Route, NavLink, Navigate, useNavigate } from 'react-router-dom'
 import { useState, useRef, useEffect } from 'react'
 import axios from 'axios'
 
-<h1> 自动化部署测试 </h1>
-
 // --- 引入所有页面组件 ---
 import PostList from './PostList'
 import CreatePost from './CreatePost'
