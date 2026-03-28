@@ -1,33 +1,78 @@
 @import "tailwindcss";
 
-/* 手动开暗色，只要标签有 .dark 就生效 */
+@theme {
+  --color-theme-base: var(--color-bg-base);
+  --color-theme-surface: var(--color-bg-surface);
+  --color-theme-hover: var(--color-bg-hover);
+  --color-theme-text-primary: var(--color-text-primary);
+  --color-theme-text-secondary: var(--color-text-secondary);
+  --color-theme-border: var(--color-border);
+  --color-theme-shadow: var(--color-shadow);
+  --color-theme-accent: var(--color-accent);
+  --color-theme-accent-hover: var(--color-accent-hover);
+}
+
 @custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
-  /* 亮色模式 (默认) */
   :root {
-    --color-bg-base: 249 250 251;       /*  gray-50：最底层的页面背景 */
-    --color-bg-surface: 255 255 255;    /*  white：卡片、文章主体背景 */
-    --color-bg-hover: 243 244 246;      /*  gray-100：按钮或区块悬浮色 */
-    
-    --color-text-primary: 17 24 39;     /*  gray-900：大标题、核心文字 */
-    --color-text-secondary: 107 114 128;/*  gray-500：次要文字、图标 */
-    
-    --color-border: 229 231 235;        /*  gray-200：分割线、边框 */
-    
-    --color-accent: 59 130 246;         /*  blue-500：主题强调色 */
+    --color-bg-base: #ebf0ec;       
+    --color-bg-surface: #fafcfa;    
+    --color-bg-hover: #e2e8e4;      
+    --color-text-primary: #222824;    
+    --color-text-secondary: #5a645c;  
+    --color-border: #222824;          
+    --color-shadow: #222824;          
+    --color-accent: #d85040;          
+    --color-accent-hover: #c43c2c;
   }
 
-  /* 暗色模式 (当 html 标签有 .dark 时生效) */
   .dark {
-    --color-bg-base: 10 10 12;          /*  #0a0a0c：背景黑底色 */
-    --color-bg-surface: 17 24 39;       /*  gray-900：卡片底色 */
-    --color-bg-hover: 31 41 55;         /*  gray-800：悬浮色 */
+    --color-bg-base: #1c201d;         
+    --color-bg-surface: #262b27;
+    --color-bg-hover: #303631;
+    --color-text-primary: #ebf0ec;
+    --color-text-secondary: #a0aaa2;
+    --color-border: #ebf0ec;          
+    --color-shadow: #ebf0ec;          
+    --color-accent: #ee6450;          
+    --color-accent-hover: #ff7864;
+  }
+
+  body {
+    background-color: var(--color-bg-base);
+    color: var(--color-text-primary);
+    font-family: ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    transition-property: color, background-color, border-color, fill, stroke;
+    transition-duration: 300ms;
     
-    --color-text-primary: 243 244 246;  /*  gray-100：亮白文字 */
-    --color-text-secondary: 156 163 175;/*  gray-400：暗灰文字 */
-    
-    --color-border: 31 41 55;           /*  gray-800：暗色边框 */
-    
-    --color-accent: 59 130 246;         /*  blue-500：暗色下蓝色可以保持不变 */
+    background-image: radial-gradient(color-mix(in srgb, var(--color-border) 12%, transparent) 2px, transparent 2px);
+    background-size: 24px 24px;
+  }
+}
+
+@layer utilities {
+  .shadow-brutal { box-shadow: 4px 4px 0px 0px var(--color-shadow); }
+  .shadow-brutal-lg { box-shadow: 8px 8px 0px 0px var(--color-shadow); }
+  .shadow-brutal-sm { box-shadow: 2px 2px 0px 0px var(--color-shadow); }
+  
+  .active-brutal {
+    transform: translate(4px, 4px) !important;
+    box-shadow: 0px 0px 0px 0px var(--color-shadow) !important;
+  }
+  .active-brutal-sm {
+    transform: translate(2px, 2px) !important;
+    box-shadow: 0px 0px 0px 0px var(--color-shadow) !important;
+  }
+
+  @keyframes draw-pcb-line {
+    to { stroke-dashoffset: 0; }
+  }
+  .animate-draw-line {
+    stroke-dasharray: 2000;
+    stroke-dashoffset: 2000;
+    animation: draw-pcb-line 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 }

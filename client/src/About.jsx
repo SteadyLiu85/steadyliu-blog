@@ -1,60 +1,52 @@
 import { User, Mail, Github, Code, Award, Target, Tv } from 'lucide-react'
 
 function About() {
-
   const handleCopyEmail = (e) => {
     e.preventDefault();
     navigator.clipboard.writeText('steadyliu85@gmail.com');
-    alert('📧 邮箱 steadyliu85@gmail.com 已成功复制到剪贴板！');
+    alert('EMAIL COPIED: steadyliu85@gmail.com');
   };
 
   return (
-    <div className="pb-24 max-w-3xl mx-auto space-y-12 text-left">
-      {/* 头部：头像与身份 */}
-      <div className="flex flex-col items-center text-center space-y-6">
-        <div className="w-32 h-32 bg-gradient-to-tr from-blue-500 to-cyan-400 rounded-full p-1 shadow-2xl shadow-blue-500/20">
-          <div className="w-full h-full bg-white dark:bg-[#0a0a0c] rounded-full flex items-center justify-center border-4 border-white dark:border-[#0a0a0c] transition-colors">
-            <User size={48} className="text-blue-500" />
-          </div>
+    <div className="pb-24 max-w-3xl mx-auto space-y-16 text-left">
+      <div className="flex flex-col items-center text-center space-y-8 mt-8">
+        <div className="w-36 h-36 bg-theme-surface rounded-full flex items-center justify-center border-4 border-theme-border shadow-brutal-lg">
+          <User size={64} strokeWidth={2.5} className="text-theme-accent" />
         </div>
         <div>
-          <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter mb-2 transition-colors">STEADY LIU</h1>
-          <p className="text-blue-600 dark:text-blue-400 font-mono font-bold tracking-widest text-sm uppercase">
+          <h1 className="text-6xl font-black text-theme-text-primary tracking-tighter mb-4 uppercase">STEADY LIU</h1>
+          <p className="bg-theme-border text-theme-surface font-mono font-black px-4 py-2 rounded-lg text-sm uppercase inline-block shadow-brutal-sm">
             Computer Science Undergraduate
           </p>
         </div>
       </div>
 
-      {/* 个人简介 */}
-      <div className="bg-white/80 dark:bg-gray-900/30 backdrop-blur-xl p-8 md:p-12 rounded-[2.5rem] border border-gray-200 dark:border-gray-800 shadow-xl transition-colors duration-500">
-        <h2 className="text-xl font-black text-gray-900 dark:text-white mb-6 flex items-center gap-2 border-b border-gray-200 dark:border-gray-800 pb-4 transition-colors">
-          <Code className="text-blue-500" size={20} /> ABOUT ME
+      <div className="bg-theme-surface p-10 md:p-16 rounded-3xl border-4 border-theme-border shadow-brutal-lg">
+        <h2 className="text-3xl font-black text-theme-text-primary mb-8 flex items-center gap-4 border-b-4 border-theme-border pb-6 uppercase">
+          <Code className="text-theme-accent" size={32} strokeWidth={3} /> ABOUT ME
         </h2>
         
-        <div className="space-y-4 text-gray-600 dark:text-gray-300 leading-relaxed font-medium transition-colors">
-          <p>
-            计算机专业在读本科生。
-          </p>
+        <div className="space-y-4 text-theme-text-primary text-xl font-bold leading-relaxed">
+          <p>计算机专业在读本科生。</p>
         </div>
 
-        {/* 荣誉与动态 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
-          <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 transition-colors">
-            <h3 className="text-sm font-black text-gray-900 dark:text-white flex items-center gap-2 mb-4 tracking-widest uppercase">
-              <Award className="text-blue-500" size={16} /> Milestones
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
+          <div className="bg-theme-base p-8 rounded-2xl border-4 border-theme-border shadow-brutal-sm">
+            <h3 className="text-lg font-black text-theme-text-primary flex items-center gap-3 mb-6 uppercase">
+              <Award className="text-theme-accent" size={24} strokeWidth={3} /> Milestones
             </h3>
-            <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400 font-medium">
+            <ul className="space-y-3 text-theme-text-secondary font-bold text-lg list-disc list-inside marker:text-theme-accent">
               <li>待写</li>
               <li>待写</li>
               <li>待写</li>
             </ul>
           </div>
           
-          <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 transition-colors">
-            <h3 className="text-sm font-black text-gray-900 dark:text-white flex items-center gap-2 mb-4 tracking-widest uppercase">
-              <Target className="text-blue-500" size={16} /> Focus & Goals
+          <div className="bg-theme-base p-8 rounded-2xl border-4 border-theme-border shadow-brutal-sm">
+            <h3 className="text-lg font-black text-theme-text-primary flex items-center gap-3 mb-6 uppercase">
+              <Target className="text-theme-accent" size={24} strokeWidth={3} /> Focus & Goals
             </h3>
-            <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400 font-medium">
+            <ul className="space-y-3 text-theme-text-secondary font-bold text-lg list-disc list-inside marker:text-theme-accent">
               <li>待写</li>
               <li>待写</li>
               <li>待写</li>
@@ -63,19 +55,15 @@ function About() {
         </div>
       </div>
 
-      {/* 链接 */}
-      <div className="flex justify-center gap-6">
-        {/* GitHub */}
-        <a href="https://github.com/SteadyLiu85" target="_blank" rel="noreferrer" className="p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl text-gray-600 dark:text-gray-400 hover:text-blue-500 hover:border-blue-500/50 hover:-translate-y-1 transition-all shadow-sm">
-          <Github size={24} />
+      <div className="flex justify-center gap-8">
+        <a href="https://github.com/SteadyLiu85" target="_blank" rel="noreferrer" className="p-5 bg-theme-surface border-4 border-theme-border rounded-2xl text-theme-text-primary hover:text-white hover:bg-theme-border shadow-brutal hover:shadow-brutal-lg hover:-translate-y-1 active:active-brutal transition-all">
+          <Github size={32} strokeWidth={2.5}/>
         </a>
-        
-        <a href="https://space.bilibili.com/324338189" target="_blank" rel="noreferrer" className="p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl text-gray-600 dark:text-gray-400 hover:text-[#FB7299] hover:border-[#FB7299]/50 hover:-translate-y-1 transition-all shadow-sm">
-          <Tv size={24} />
+        <a href="https://space.bilibili.com/324338189" target="_blank" rel="noreferrer" className="p-5 bg-theme-surface border-4 border-theme-border rounded-2xl text-theme-text-primary hover:text-white hover:bg-[#FB7299] hover:border-[#FB7299] shadow-brutal hover:shadow-brutal-lg hover:-translate-y-1 active:active-brutal transition-all">
+          <Tv size={32} strokeWidth={2.5} />
         </a>
-
-        <button onClick={handleCopyEmail} className="p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl text-gray-600 dark:text-gray-400 hover:text-blue-500 hover:border-blue-500/50 hover:-translate-y-1 transition-all shadow-sm cursor-pointer">
-          <Mail size={24} />
+        <button onClick={handleCopyEmail} className="p-5 bg-theme-surface border-4 border-theme-border rounded-2xl text-theme-text-primary hover:text-white hover:bg-theme-accent hover:border-theme-accent shadow-brutal hover:shadow-brutal-lg hover:-translate-y-1 active:active-brutal transition-all cursor-pointer">
+          <Mail size={32} strokeWidth={2.5} />
         </button>
       </div>
     </div>

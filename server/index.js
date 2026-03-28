@@ -53,7 +53,9 @@ const checkIsAdmin = (req) => {
         try {
             jwt.verify(token, process.env.JWT_SECRET);
             return true; // 令牌有效
-        } catch (err) { return false; }
+        } catch (err) { 
+            return false; 
+        }
     }
     return false; // 无令牌
 };
@@ -84,10 +86,14 @@ app.post('/api/auth/login', async (req, res) => {
     try {
         const { username, password } = req.body;
         const user = await User.findOne({ username });
-        if (!user) return res.status(404).json({ message: '用户不存在' });
+        if (!user) {
+            return res.status(404).json({ message: '用户不存在' });
+        }
 
         const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ message: '密码错误' });
+        if (!isMatch) {
+            return res.status(400).json({ message: '密码错误' });
+        }
 
         const token = jwt.sign(
             { id: user._id, username: user.username }, 
@@ -121,10 +127,22 @@ app.get('/api/posts', async (req, res) => {
     }
 });
 
-// 获取单篇文章详情的接口 (无需鉴权)
+// [已优化] 获取单篇文章详情的接口 (支持通过 _id 或 标题 获取)
 app.get('/api/posts/:id', async (req, res) => {
     try {
-        const post = await Post.findById(req.params.id);
+        const identifier = req.params.id;
+        let post;
+        
+        // 1. 先尝试用 MongoDB ObjectId 去找 (兼容 ID 链接)
+        if (mongoose.Types.ObjectId.isValid(identifier)) {
+            post = await Post.findById(identifier);
+        }
+        
+        // 2. 如果找不到，或者传进来的是标题，就用标题去找
+        if (!post) {
+            post = await Post.findOne({ title: identifier });
+        }
+
         if (post) {
             res.json(post);
         } else {
@@ -148,7 +166,9 @@ app.get('/api/posts/filter/data', async (req, res) => {
     try {
         const posts = await Post.find(query).sort({ createdAt: -1 });
         res.json(posts);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        res.status(500).json({ error: err.message }); 
+    }
 });
 
 // 获取所有合集的列表
@@ -159,9 +179,12 @@ app.get('/api/series', async (req, res) => {
         
         const series = await Post.distinct('series', query);
         res.json(series);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        res.status(500).json({ error: err.message }); 
+    }
 });
 
+// 获取合集统计数据
 app.get('/api/series/stats', async (req, res) => {
     try {
         const isAdmin = checkIsAdmin(req);
@@ -198,7 +221,9 @@ app.get('/api/series/stats', async (req, res) => {
             }));
 
         res.json(result);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        res.status(500).json({ error: err.message }); 
+    }
 });
 
 // 获取所有标签的列表
@@ -214,15 +239,18 @@ app.get('/api/tags', async (req, res) => {
             { $sort: { count: -1 } } 
         ]);
         res.json(tagCounts); 
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        res.status(500).json({ error: err.message }); 
+    }
 });
 
-// 创建文章的接口
+// [已优化] 创建文章的接口 (接收 summary)
 app.post('/api/posts', verifyToken, async (req, res) => {
     try {
-        const { title, content, tags, series, status, createdAt } = req.body;
+        const { title, summary, content, tags, series, status, createdAt } = req.body;
         
-        const newPost = new Post({ title, content, tags, series, status });
+        // 包含 summary 字段
+        const newPost = new Post({ title, summary, content, tags, series, status });
         
         if (createdAt) {
             newPost.createdAt = new Date(createdAt);
@@ -236,13 +264,15 @@ app.post('/api/posts', verifyToken, async (req, res) => {
     }
 });
 
-// 更新文章
+//[已优化] 更新文章的接口 (接收 summary)
 app.put('/api/posts/:id', verifyToken, async (req, res) => {
     try {
-        const { title, content, series, tags, status, createdAt } = req.body; 
+        const { title, summary, content, series, tags, status, createdAt } = req.body; 
         
+        // 包含 summary 字段
         const updateData = { 
             title, 
+            summary,
             content, 
             series, 
             tags, 
@@ -298,7 +328,9 @@ const upload = multer({ storage: storage });
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.post('/api/upload', verifyToken, upload.single('image'), (req, res) => {
-  if (!req.file) return res.status(400).json({ message: '上传失败' });
+  if (!req.file) {
+      return res.status(400).json({ message: '上传失败' });
+  }
   
   const imageUrl = `http://localhost:5000/uploads/${req.file.filename}`;
   res.json({ url: imageUrl });

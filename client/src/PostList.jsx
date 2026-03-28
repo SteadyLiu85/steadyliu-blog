@@ -1,130 +1,106 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
-import { 
-  Plus, Search, Clock, Edit3, Trash2, 
-  ChevronRight, FileText, Calendar 
-} from 'lucide-react'
+import { Search, Edit3, Trash2, ArrowRight } from 'lucide-react'
 
 function PostList() {
   const [posts, setPosts] = useState([])
-  const [searchQuery, setSearchQuery] = useState('')
+  const[searchQuery, setSearchQuery] = useState('')
 
   const fetchPosts = () => {
-    axios.get('/api/posts')
-      .then(res => setPosts(res.data))
-      .catch(err => console.error("获取失败:", err))
+    axios.get('/api/posts').then(res => {
+      if (Array.isArray(res.data)) setPosts(res.data);
+      else setPosts([]);
+    }).catch(() => setPosts([]))
   }
-
-  useEffect(() => {
-    fetchPosts()
-  }, [])
+  useEffect(() => { fetchPosts() },[])
 
   const handleDelete = async (e, id) => {
     e.preventDefault();
-    if (window.confirm('确定要删除吗？这份记录将永久消失。')) {
-      try {
-        await axios.delete(`/api/posts/${id}`)
-        fetchPosts()
-      } catch (err) {
-        alert('删除失败')
-      }
+    if (window.confirm('Delete this entry?')) {
+      try { await axios.delete(`/api/posts/${id}`); fetchPosts(); } catch (err) { alert('删除失败'); }
     }
   }
 
-  const filteredPosts = posts.filter(post => 
-    post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    post.content.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredPosts = Array.isArray(posts) ? posts.filter(post => 
+    (post?.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (post?.summary || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (post?.content || '').toLowerCase().includes(searchQuery.toLowerCase())
+  ) :[]
 
   return (
     <div className="space-y-10 text-left">
-      {/* 1. 顶部标题栏：还原精致的间距与边框 */}
-      <div className="flex justify-between items-end border-b border-gray-200 dark:border-gray-800 pb-8 transition-colors">
-        <div>
-          <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter flex items-center gap-3 transition-colors">
-            STEADY <span className="text-blue-500">LOG</span>
-          </h1>
-          <p className="text-gray-500 dark:text-gray-600 font-mono text-xs mt-2 tracking-[0.3em] uppercase transition-colors">
-            Total Archives: {posts.length}
-          </p>
+      
+      <div className="flex flex-col md:flex-row gap-4 justify-between items-end">
+        <div className="w-full md:w-2/3">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-theme-text-primary">
+              <Search size={18} strokeWidth={3} />
+            </div>
+            <input 
+              type="text" 
+              placeholder="Search codebase context..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-theme-surface border-2 border-theme-border rounded-sm pl-12 pr-4 py-3 font-mono font-bold text-theme-text-primary focus:outline-none shadow-brutal-sm focus:shadow-brutal focus:-translate-y-0.5 focus:-translate-x-0.5 transition-all placeholder:text-theme-text-secondary/50"
+            />
+          </div>
         </div>
-        <Link to="/create">
-          <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-blue-500/20 active:scale-95 text-sm">
-            <Plus size={18} strokeWidth={3} /> 新建博文
-          </button>
+        <Link to="/create" className="shrink-0 w-full md:w-auto text-center bg-theme-text-primary text-theme-surface font-mono font-bold text-sm px-6 py-3.5 rounded-sm border-2 border-theme-border hover:bg-theme-surface hover:text-theme-text-primary shadow-brutal-sm hover:shadow-brutal hover:-translate-y-0.5 active:active-brutal-sm transition-all">
+          Write New Entry →
         </Link>
       </div>
 
-      {/* 2. 搜索框：修复图标定位与玻璃质感 */}
-      <div className="relative group">
-        {/* 🟢 核心修复点：将 pointer-events-none 配合 flex 垂直居中，确保 Search 图标不被遮挡 */}
-        <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-gray-400 dark:text-gray-500 group-focus-within:text-blue-500 transition-colors z-10">
-          <Search size={18} strokeWidth={2.5} />
-        </div>
-        <input 
-          type="text" 
-          placeholder="探索你的知识库..." 
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-white/50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-800 rounded-2xl pl-14 pr-4 py-4 text-gray-900 dark:text-gray-200 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white dark:focus:bg-gray-900/60 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-600 font-medium shadow-sm backdrop-blur-sm relative z-0"
-        />
-        {searchQuery && (
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-mono font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-1 rounded-md border border-blue-500/20 transition-colors z-10">
-            FOUND: {filteredPosts.length}
-          </div>
-        )}
-      </div>
-
-      {/* 3. 文章卡片列表：还原圆角与悬停动画 */}
-      <div className="grid gap-8">
+      <div className="grid gap-6">
         {filteredPosts.length === 0 ? (
-          <div className="text-center py-24 bg-gray-50 dark:bg-gray-900/10 rounded-[3rem] border-2 border-dashed border-gray-200 dark:border-gray-800 transition-colors">
-            <FileText size={48} className="mx-auto text-gray-300 dark:text-gray-700 mb-4 opacity-50" />
-            <p className="text-gray-400 dark:text-gray-600 italic font-mono uppercase tracking-widest text-sm">No records found</p>
+          <div className="text-center py-20 bg-theme-surface border-2 border-dashed border-theme-text-secondary rounded-sm">
+            <p className="text-theme-text-secondary font-mono font-bold uppercase tracking-widest text-sm">100% Empty Context</p>
           </div>
         ) : (
           filteredPosts.map(post => (
-            <div key={post._id} className="group relative bg-white/80 dark:bg-gray-900/30 p-8 rounded-[2.5rem] border border-gray-200 dark:border-gray-800 hover:border-blue-500/40 dark:hover:border-blue-500/50 hover:bg-blue-50/50 dark:hover:bg-blue-500/5 transition-all duration-300 text-left overflow-hidden shadow-sm hover:shadow-xl dark:hover:shadow-[0_0_40px_rgba(59,130,246,0.1)]">
+            <div key={post._id} className="group flex flex-col md:flex-row bg-theme-surface border-2 border-theme-border rounded-sm shadow-brutal hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0_0_var(--color-border)] transition-all duration-200">
               
-              {/* 悬停时的右侧箭头提示 (还原) */}
-              <div className="absolute top-1/2 -right-4 -translate-y-1/2 opacity-0 group-hover:opacity-20 group-hover:-translate-x-2 transition-all duration-500 text-gray-300 dark:text-gray-700">
-                <ChevronRight size={64} />
-              </div>
-
-              <div className="relative z-10">
-                <Link to={`/post/${post._id}`} className="block mb-4">
-                  <h2 className="text-2xl font-black text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-tight">
-                    {post.title}
-                  </h2>
-                </Link>
+              <div className="md:w-1/4 border-b-2 md:border-b-0 md:border-r-2 border-theme-border bg-theme-base/50 p-6 flex flex-col justify-between">
+                <div className="space-y-4">
+                  <div className="font-mono text-xs font-bold text-theme-text-secondary uppercase">
+                    Date
+                    <div className="text-theme-text-primary mt-1 text-sm">{new Date(post.createdAt).toLocaleDateString()}</div>
+                  </div>
+                  {post.series && (
+                    <div className="font-mono text-xs font-bold text-theme-text-secondary uppercase">
+                      Category
+                      <div className="text-theme-accent mt-1 text-sm truncate">{post.series}</div>
+                    </div>
+                  )}
+                </div>
                 
-                <p className="text-gray-600 dark:text-gray-500 leading-relaxed mb-8 line-clamp-2 font-medium transition-colors">
-                  {post.content}
-                </p>
-
-                <div className="flex justify-between items-center border-t border-gray-100 dark:border-gray-800/50 pt-6 transition-colors">
-                  <div className="flex gap-6">
-                    <Link to={`/edit/${post._id}`} className="flex items-center gap-1.5 text-xs font-black text-blue-600 dark:text-blue-500 hover:text-blue-800 dark:hover:text-blue-400 transition-colors uppercase tracking-widest">
-                      <Edit3 size={14} /> Edit
-                    </Link>
-                    <button 
-                      onClick={(e) => handleDelete(e, post._id)} 
-                      className="flex items-center gap-1.5 text-xs font-black text-gray-400 dark:text-gray-600 hover:text-red-600 dark:hover:text-red-500 transition-colors uppercase tracking-widest"
-                    >
-                      <Trash2 size={14} /> Delete
-                    </button>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-[11px] font-mono text-gray-400 dark:text-gray-600 transition-colors">
-                    <Calendar size={12} className="opacity-50" />
-                    {new Date(post.createdAt).toLocaleDateString()}
-                    <span className="mx-1 opacity-20">|</span>
-                    <Clock size={12} className="opacity-50" />
-                    {new Date(post.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </div>
+                <div className="hidden md:flex gap-3 mt-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Link to={`/edit/${post._id}`} className="text-theme-text-secondary hover:text-theme-text-primary"><Edit3 size={16} strokeWidth={2.5}/></Link>
+                  <button onClick={(e) => handleDelete(e, post._id)} className="text-theme-text-secondary hover:text-red-500"><Trash2 size={16} strokeWidth={2.5}/></button>
                 </div>
               </div>
+
+              <Link to={`/post/${encodeURIComponent(post.title)}`} className="md:w-3/4 p-6 flex flex-col cursor-pointer">
+                <h2 className="text-2xl md:text-3xl font-black text-theme-text-primary leading-tight mb-4 group-hover:underline decoration-2 underline-offset-4 decoration-theme-accent">
+                  {post.title}
+                </h2>
+                
+                {/* 优先渲染 summary，否则正则过滤部分 Markdown 渲染截断正文 */}
+                <p className="text-theme-text-secondary leading-relaxed mb-6 line-clamp-3">
+                  {post.summary || post.content.replace(/[#*`>]/g, '')}
+                </p>
+
+                <div className="mt-auto flex justify-between items-end">
+                  <div className="flex gap-2 flex-wrap">
+                    {post.tags?.slice(0,3).map(tag => (
+                      <span key={tag} className="font-mono text-[10px] font-bold border border-theme-border px-1.5 py-0.5 text-theme-text-secondary rounded-sm">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <ArrowRight size={20} strokeWidth={2.5} className="text-theme-border opacity-30 group-hover:opacity-100 group-hover:text-theme-accent transition-colors" />
+                </div>
+              </Link>
             </div>
           ))
         )}

@@ -1,68 +1,156 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 import { Hash } from 'lucide-react'
 
 function TagCloud() {
-  const [tagData, setTagData] = useState([])
+  const[tagData, setTagData] = useState([])
+  const containerRef = useRef(null)
+  
+  // 用于记录每个标签中心点坐标的映射
+  const [positions, setPositions] = useState({})
+  const[hoveredTag, setHoveredTag] = useState(null)
+  const [connectedTargets, setConnectedTargets] = useState([])
 
   useEffect(() => {
-    axios.get('/api/tags')
-      .then(res => setTagData(res.data))
-      .catch(err => console.error(err))
-  }, [])
+    axios.get('/api/tags').then(res => setTagData(res.data)).catch(err => console.error(err))
+  },[])
 
-  const getTagDynamicStyle = (count) => {
-    if (count > 10) return 'text-7xl font-black text-gray-900 dark:text-white drop-shadow-xl dark:drop-shadow-[0_0_20px_rgba(34,211,238,0.8)] opacity-100 hover:text-blue-600 dark:hover:text-cyan-300'
-    if (count > 5)  return 'text-5xl font-extrabold text-blue-600 dark:text-cyan-400 opacity-95 hover:text-blue-800 dark:hover:text-white'
-    if (count > 2)  return 'text-3xl font-bold text-blue-500 dark:text-blue-300 opacity-90'
-    return 'text-xl font-medium text-gray-500 dark:text-gray-400 opacity-70 hover:text-blue-500 dark:hover:text-blue-200'
+  // === 计算元素的绝对几何坐标 ===
+  useEffect(() => {
+    const calculatePositions = () => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const nodes = containerRef.current.querySelectorAll('[data-tag-id]');
+      const newPos = {};
+      nodes.forEach(n => {
+        const nRect = n.getBoundingClientRect();
+        // 计算相对于父容器的中心坐标
+        newPos[n.dataset.tagId] = {
+           x: nRect.left - rect.left + nRect.width / 2,
+           y: nRect.top - rect.top + nRect.height / 2,
+        };
+      });
+      setPositions(newPos);
+    };
+
+    // 延迟计算确保 DOM 渲染并排列完成
+    const timer = setTimeout(calculatePositions, 300);
+    window.addEventListener('resize', calculatePositions);
+    
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', calculatePositions);
+    }
+  }, [tagData]);
+
+  // 当鼠标悬浮时触发连线逻辑
+  const handleMouseEnter = (tagId, index) => {
+    setHoveredTag(tagId);
+    
+    // 利用索引确定性的绑定 3 个伪随机关联标签
+    const targets =[];
+    if (tagData.length > 1) {
+       targets.push(tagData[(index + 2) % tagData.length]._id);
+       if (tagData.length > 3) targets.push(tagData[(index + 5) % tagData.length]._id);
+       if (tagData.length > 5) targets.push(tagData[(index + tagData.length - 1) % tagData.length]._id);
+    }
+    // 过滤掉自己
+    setConnectedTargets(targets.filter(t => t !== tagId));
+  };
+
+  const handleMouseLeave = () => {
+    setHoveredTag(null);
+    setConnectedTargets([]);
+  };
+
+  const getTagScale = (count) => {
+    if (count > 10) return 'text-4xl px-8 py-4'
+    if (count > 5)  return 'text-2xl px-6 py-3'
+    if (count > 2)  return 'text-xl px-5 py-2'
+    return 'text-lg px-4 py-2'
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-8 pb-24 text-left">
-      
-      <header className="mb-16">
-        <div className="flex items-center gap-3 text-blue-600 dark:text-blue-500 mb-2 transition-colors">
-            <Hash size={24} strokeWidth={2.5} />
-            <span className="font-mono text-sm tracking-[0.3em] uppercase">Semantic Nodes</span>
-        </div>
-        <h1 className="text-4xl font-black text-gray-900 dark:text-white border-l-4 border-blue-500 pl-4 uppercase tracking-tighter transition-colors">
-          Technical Tags / <span className="text-blue-500 font-mono italic">云</span>
+    <div className="text-left mb-24">
+      <header className="mb-16 border-b-4 border-theme-border pb-6">
+        <h1 className="text-5xl font-black text-theme-text-primary flex items-center gap-4 tracking-tighter uppercase">
+          <Hash size={40} strokeWidth={3} className="text-theme-accent" />
+          Semantic Nodes
         </h1>
+        <p className="mt-4 font-mono text-sm text-theme-text-secondary uppercase tracking-widest font-bold">
+          [ Hover over nodes to reveal hidden architectural links ]
+        </p>
       </header>
 
-      <div className="min-h-[600px] flex flex-wrap items-center justify-center gap-x-16 gap-y-24 bg-white/60 dark:bg-gray-950/60 backdrop-blur-3xl p-10 md:p-20 rounded-[4rem] border border-gray-200 dark:border-gray-800 shadow-xl dark:shadow-[0_0_100px_-20px_rgba(0,0,0,0.8)] relative overflow-hidden transition-colors duration-500">
-        
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-blue-600/5 dark:bg-blue-600/10 blur-[120px] pointer-events-none transition-colors duration-500"></div>
+      <div 
+        ref={containerRef}
+        className="min-h-[600px] flex flex-wrap content-start items-center justify-center gap-8 bg-theme-surface p-12 md:p-24 rounded-sm border-4 border-theme-border shadow-brutal-lg relative"
+      >
+        {/* 标签连线 */}
+        <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
+          {hoveredTag && connectedTargets.map((targetId) => {
+            const p1 = positions[hoveredTag];
+            const p2 = positions[targetId];
+            if (!p1 || !p2) return null;
 
-        {tagData.map((tag) => {
-          // 生成随机旋转
-          const rotation = (Math.random() * 16 - 8).toFixed(2);
+            const midX = p1.x + (p2.x - p1.x) / 2;
+            const pathD = `M ${p1.x} ${p1.y} L ${midX} ${p1.y} L ${midX} ${p2.y} L ${p2.x} ${p2.y}`;
+
+            return (
+              <g key={targetId}>
+                <path 
+                  d={pathD} 
+                  stroke="var(--color-border)" 
+                  strokeWidth="3" 
+                  fill="none" 
+                  className="animate-draw-line" 
+                />
+                {/* 起点红色高亮，终点深色方块 */}
+                <rect x={p1.x - 4} y={p1.y - 4} width="8" height="8" fill="var(--color-accent)" className="animate-draw-line" />
+                <rect x={p2.x - 4} y={p2.y - 4} width="8" height="8" fill="var(--color-border)" className="animate-draw-line" />
+              </g>
+            );
+          })}
+        </svg>
+
+        {/* 标签渲染 (设置较高的 z-index 防止被线挡住交互) */}
+        {tagData.map((tag, index) => {
+          const rotation = (Math.random() * 6 - 3).toFixed(2); 
           
+          // 计算当前节点的透明度状态
+          const isHovered = hoveredTag === tag._id;
+          const isConnected = connectedTargets.includes(tag._id);
+          const isFaded = hoveredTag && !isHovered && !isConnected;
+
           return (
             <Link 
               key={tag._id} 
               to={`/tags/${encodeURIComponent(tag._id)}`}
+              data-tag-id={tag._id}
+              onMouseEnter={() => handleMouseEnter(tag._id, index)}
+              onMouseLeave={handleMouseLeave}
               style={{ transform: `rotate(${rotation}deg)` }}
-              className={`transition-all duration-500 ease-out hover:scale-125 hover:!rotate-0 hover:z-20 cursor-pointer inline-block ${getTagDynamicStyle(tag.count)}`}
+              className={`relative z-10 font-black uppercase bg-theme-base border-4 border-theme-border shadow-brutal hover:shadow-brutal-lg hover:scale-110 active:active-brutal transition-all duration-300 cursor-pointer flex items-center gap-3 ${getTagScale(tag.count)}
+                ${isHovered ? 'bg-theme-accent text-white border-theme-border z-20 !rotate-0' : 'text-theme-text-primary'}
+                ${isConnected ? '!border-theme-accent !rotate-0 z-20' : ''}
+                ${isFaded ? 'opacity-20 grayscale' : 'opacity-100'}
+              `}
             >
-              <span className="relative inline-block tracking-tight">
-                 {tag._id}
-                 
-                 <span className="absolute -right-4 -top-2 md:-right-6 md:-top-4 translate-x-1/2 flex items-center justify-center min-w-[20px] md:min-w-[24px] h-[20px] md:h-[24px] px-1.5 rounded-full bg-gray-100 dark:bg-gray-900 border-2 border-white dark:border-gray-950 text-[10px] md:text-[11px] font-mono font-black text-blue-600 dark:text-cyan-500 shadow-sm transition-colors duration-500">
-                   {tag.count}
-                 </span>
+              <span>{tag._id}</span>
+              <span className={`px-2 py-0.5 text-sm shadow-brutal-sm font-mono border-2 border-theme-border
+                ${isHovered ? 'bg-theme-surface text-theme-text-primary' : 'bg-theme-accent text-white'}`}
+              >
+                {tag.count}
               </span>
             </Link>
           );
         })}
 
-        {/* 加载状态 */}
         {tagData.length === 0 && (
-          <div className="flex flex-col items-center gap-4 py-20 relative z-10">
-            <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-gray-500 dark:text-gray-500 font-mono tracking-widest">SYNCHRONIZING TAGS...</p>
+          <div className="flex flex-col items-center gap-6 py-20 z-10 relative">
+            <div className="w-16 h-16 border-8 border-theme-border border-t-theme-accent rounded-full animate-spin"></div>
+            <p className="text-theme-text-primary font-black font-mono tracking-widest text-xl">LOADING TAGS...</p>
           </div>
         )}
       </div>
