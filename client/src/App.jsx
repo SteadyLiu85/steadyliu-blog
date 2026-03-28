@@ -15,7 +15,7 @@ import Dashboard from './Dashboard'
 import { Sun, Moon, Monitor, ChevronDown, LogOut } from 'lucide-react'
 import { useTheme } from './ThemeContext' 
 
-axios.defaults.baseURL = 'http://47.77.234.3:5000';
+axios.defaults.baseURL = '';
 
 axios.interceptors.request.use(config => {
   const token = localStorage.getItem('token');
