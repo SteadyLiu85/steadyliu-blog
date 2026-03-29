@@ -286,7 +286,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // 3. 开放静态文件访问目录
-app.use('/uploads', express.static(uploadDir));
+app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // 4. 接收上传并返回相对路径
 app.post('/api/upload', verifyToken, upload.single('image'), (req, res) => {
@@ -294,7 +294,7 @@ app.post('/api/upload', verifyToken, upload.single('image'), (req, res) => {
       return res.status(400).json({ message: '上传失败' });
   }
   
-  const imageUrl = `/uploads/${req.file.filename}`;
+  const imageUrl = `/api/uploads/${req.file.filename}`;
   
   res.json({ url: imageUrl });
 });
