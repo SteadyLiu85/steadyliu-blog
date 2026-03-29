@@ -4,17 +4,36 @@ import axios from 'axios';
 import { LayoutDashboard, Edit3, Trash2, Eye, EyeOff, Calendar, Loader2 } from 'lucide-react';
 
 function Dashboard() {
-  const[posts, setPosts] = useState([]);
+  const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchPosts = () => {
-    axios.get('/api/posts').then(res => { setPosts(res.data); setLoading(false); }).catch(err => console.error(err));
+    axios.get('/api/posts')
+      .then(res => {
+        if (Array.isArray(res.data)) {
+          setPosts(res.data);
+        } else {
+          setPosts([]);
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setPosts([]);
+        setLoading(false); // 核心修复：就算报错也能关闭动画
+      });
   };
+
   useEffect(() => { fetchPosts(); },[]);
 
   const handleDelete = async (id, title) => {
     if (window.confirm(`⚠️ PERMANENT DELETE: 《${title}》?`)) {
-      try { await axios.delete(`/api/posts/${id}`); fetchPosts(); } catch (err) { alert('删除失败'); }
+      try { 
+        await axios.delete(`/api/posts/${id}`); 
+        fetchPosts(); 
+      } catch (err) { 
+        alert('删除失败'); 
+      }
     }
   };
 
@@ -55,6 +74,7 @@ function Dashboard() {
             {posts.map((post) => (
               <tr key={post._id} className="hover:bg-theme-hover transition-colors">
                 <td className="p-6 border-r-2 border-theme-border">
+                  {/* 回档：使用 post._id */}
                   <Link to={`/post/${post._id}`} className="text-lg text-theme-text-primary hover:text-theme-accent transition-colors underline decoration-2 underline-offset-4 decoration-transparent hover:decoration-theme-accent">
                     {post.title}
                   </Link>
@@ -78,6 +98,7 @@ function Dashboard() {
                 </td>
                 <td className="p-6 text-right">
                   <div className="flex items-center justify-end gap-3">
+                    {/* 回档：使用 post._id */}
                     <Link to={`/edit/${post._id}`} className="bg-theme-base border-2 border-theme-border p-2 rounded-lg text-theme-text-primary hover:bg-theme-surface hover:text-theme-accent shadow-brutal-sm hover:shadow-brutal active:active-brutal-sm transition-all">
                       <Edit3 size={18} strokeWidth={2.5} />
                     </Link>

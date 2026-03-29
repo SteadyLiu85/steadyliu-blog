@@ -4,21 +4,35 @@ import axios from 'axios'
 import { Search, Edit3, Trash2, ArrowRight } from 'lucide-react'
 
 function PostList() {
-  const [posts, setPosts] = useState([])
-  const[searchQuery, setSearchQuery] = useState('')
+  const[posts, setPosts] = useState([])
+  const [searchQuery, setSearchQuery] = useState('')
 
   const fetchPosts = () => {
-    axios.get('/api/posts').then(res => {
-      if (Array.isArray(res.data)) setPosts(res.data);
-      else setPosts([]);
-    }).catch(() => setPosts([]))
+    axios.get('/api/posts')
+      .then(res => {
+        if (Array.isArray(res.data)) {
+          setPosts(res.data);
+        } else {
+          setPosts([]);
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        setPosts([]);
+      })
   }
+
   useEffect(() => { fetchPosts() },[])
 
   const handleDelete = async (e, id) => {
     e.preventDefault();
     if (window.confirm('Delete this entry?')) {
-      try { await axios.delete(`/api/posts/${id}`); fetchPosts(); } catch (err) { alert('删除失败'); }
+      try { 
+        await axios.delete(`/api/posts/${id}`); 
+        fetchPosts(); 
+      } catch (err) { 
+        alert('删除失败'); 
+      }
     }
   }
 
@@ -29,7 +43,7 @@ function PostList() {
   ) :[]
 
   return (
-    <div className="space-y-10 text-left">
+    <div className="space-y-10 text-left mb-24">
       
       <div className="flex flex-col md:flex-row gap-4 justify-between items-end">
         <div className="w-full md:w-2/3">
@@ -75,17 +89,18 @@ function PostList() {
                 </div>
                 
                 <div className="hidden md:flex gap-3 mt-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {/* 回档：使用 post._id */}
                   <Link to={`/edit/${post._id}`} className="text-theme-text-secondary hover:text-theme-text-primary"><Edit3 size={16} strokeWidth={2.5}/></Link>
                   <button onClick={(e) => handleDelete(e, post._id)} className="text-theme-text-secondary hover:text-red-500"><Trash2 size={16} strokeWidth={2.5}/></button>
                 </div>
               </div>
 
-              <Link to={`/post/${encodeURIComponent(post.title)}`} className="md:w-3/4 p-6 flex flex-col cursor-pointer">
+              {/* 回档：使用 post._id */}
+              <Link to={`/post/${post._id}`} className="md:w-3/4 p-6 flex flex-col cursor-pointer">
                 <h2 className="text-2xl md:text-3xl font-black text-theme-text-primary leading-tight mb-4 group-hover:underline decoration-2 underline-offset-4 decoration-theme-accent">
                   {post.title}
                 </h2>
                 
-                {/* 优先渲染 summary，否则正则过滤部分 Markdown 渲染截断正文 */}
                 <p className="text-theme-text-secondary leading-relaxed mb-6 line-clamp-3">
                   {post.summary || post.content.replace(/[#*`>]/g, '')}
                 </p>

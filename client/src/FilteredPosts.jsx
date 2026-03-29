@@ -6,14 +6,25 @@ import { Tag, FolderOpen, Calendar, ArrowLeft, ChevronRight, Hash, Loader2 } fro
 function FilteredPosts({ type }) {
   const { name } = useParams()
   const [posts, setPosts] = useState([])
-  const[loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     setLoading(true)
     const encodedName = encodeURIComponent(name)
     const url = type === 'tag' ? `/api/posts/filter/data?tag=${encodedName}` : `/api/posts/filter/data?series=${encodedName}`
-    axios.get(url).then(res => { setPosts(res.data); setLoading(false) })
-  },[name, type])
+    
+    axios.get(url)
+      .then(res => { 
+        if (Array.isArray(res.data)) setPosts(res.data);
+        else setPosts([]);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setPosts([]);
+        setLoading(false); // 防止网络错误死循环
+      })
+  }, [name, type])
 
   return (
     <div className="text-left mb-24">
@@ -51,9 +62,10 @@ function FilteredPosts({ type }) {
           </div>
         ) : (
           posts.map(post => (
+            // 回档：使用 post._id
             <Link 
               key={post._id} 
-              to={`/post/${encodeURIComponent(post.title)}`} 
+              to={`/post/${post._id}`} 
               className="group block bg-theme-surface p-8 rounded-2xl border-4 border-theme-border shadow-brutal hover:shadow-brutal-lg hover:-translate-y-2 hover:-translate-x-2 transition-all duration-200 relative overflow-hidden"
             >
               <div className="absolute top-1/2 right-8 -translate-y-1/2 text-theme-border opacity-20 group-hover:opacity-100 group-hover:translate-x-2 transition-all">
@@ -65,7 +77,6 @@ function FilteredPosts({ type }) {
                   {post.title}
                 </h2>
                 
-                {/* 简介预览 */}
                 <p className="text-theme-text-secondary font-medium leading-relaxed line-clamp-2 text-base">
                   {post.summary || post.content.replace(/[#*`>]/g, '')}
                 </p>

@@ -1,4 +1,4 @@
-require('dotenv').config(); // 加载 .env 里的环境变量
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
@@ -15,8 +15,8 @@ const User = require('./models/User');
 const app = express();
 
 // --- 中间件配置 ---
-app.use(cors()); // 允许跨域
-app.use(express.json()); // 允许解析 JSON 格式的请求体
+app.use(cors());
+app.use(express.json());
 
 // --- 数据库连接 ---
 console.log("读取到的 URI 是:", process.env.MONGO_URI);
@@ -25,7 +25,6 @@ const MONGO_URI = process.env.MONGO_URI;
 if (!MONGO_URI) {
     console.error("❌ 错误:MONGO_URI 未定义！请检查 .env 文件。");
 } else {
-    // 连接配置，防止网络抖动导致的连接挂起
     mongoose.connect(MONGO_URI)
         .then(() => console.log("✅ 成功连接到 MongoDB 数据库！"))
         .catch((err) => console.error("❌ 数据库连接失败:", err));
@@ -46,42 +45,21 @@ const verifyToken = (req, res, next) => {
     }
 };
 
-// 软检查，没牌子不踢，只用来区分身份
 const checkIsAdmin = (req) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (token) {
         try {
             jwt.verify(token, process.env.JWT_SECRET);
-            return true; // 令牌有效
+            return true;
         } catch (err) { 
             return false; 
         }
     }
-    return false; // 无令牌
+    return false;
 };
 // =========================================
 
 // === 身份认证路由 ===
-
-// 初始化账号 (仅第一次使用，创建完后注释)
-// app.post('/api/auth/setup', async (req, res) => {
-//     try {
-//         const existingUser = await User.findOne({ username: 'steady' });
-//         if (existingUser) return res.status(400).json({ message: '管理员账号已存在' });
-
-//         const salt = await bcrypt.genSalt(10);
-//         const hashedPassword = await bcrypt.hash('050622', salt);
-
-//         const admin = new User({ username: 'steady', password: hashedPassword });
-//         await admin.save();
-        
-//         res.status(201).json({ message: '管理员账号 steady 初始化成功' });
-//     } catch (err) {
-//         res.status(500).json({ error: err.message });
-//     }
-// });
-
-// 登录接口 (验证密码并签发 Token)
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -114,11 +92,20 @@ app.get('/', (req, res) => {
     res.json({ message: "后端正常运行，且已连接数据库！" });
 });
 
-// ==========================================
-// 注意：精确匹配的路由必须放在通配符路由前面！
-// ==========================================
+// 1. 获取所有文章的接口 (补回，用于首页和Dashboard)
+app.get('/api/posts', async (req, res) => {
+    try {
+        const isAdmin = checkIsAdmin(req);
+        const query = isAdmin ? {} : { status: 'published' };
 
-// 1. 筛选接口：根据标签或合集查文章
+        const posts = await Post.find(query).sort({ createdAt: -1 });
+        res.json(posts);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 2. 筛选接口：根据标签或合集查文章 (必须在 /:id 之前)
 app.get('/api/posts/filter/data', async (req, res) => {
     const { tag, series } = req.query;
     
@@ -136,20 +123,10 @@ app.get('/api/posts/filter/data', async (req, res) => {
     }
 });
 
-// 2. 获取单篇文章详情的接口 (支持通过 _id 或 标题 获取)
+// 3. 获取单篇文章详情的接口 (回档：仅通过 _id 获取)
 app.get('/api/posts/:id', async (req, res) => {
     try {
-        const identifier = req.params.id;
-        let post;
-        
-        if (/^[0-9a-fA-F]{24}$/.test(identifier)) {
-            post = await Post.findById(identifier);
-        }
-        
-        if (!post) {
-            post = await Post.findOne({ title: identifier });
-        }
-
+        const post = await Post.findById(req.params.id);
         if (post) {
             res.json(post);
         } else {
@@ -157,24 +134,6 @@ app.get('/api/posts/:id', async (req, res) => {
         }
     } catch (err) {
         res.status(500).json({ error: err.message });
-    }
-});
-
-// 筛选接口：根据标签或合集查文章
-app.get('/api/posts/filter/data', async (req, res) => {
-    const { tag, series } = req.query;
-    
-    const isAdmin = checkIsAdmin(req);
-    let query = isAdmin ? {} : { status: 'published' };
-    
-    if (tag) query.tags = tag; 
-    if (series) query.series = series;
-    
-    try {
-        const posts = await Post.find(query).sort({ createdAt: -1 });
-        res.json(posts);
-    } catch (err) { 
-        res.status(500).json({ error: err.message }); 
     }
 });
 
@@ -206,11 +165,10 @@ app.get('/api/series/stats', async (req, res) => {
             } }
         ]);
 
-        // 配置合集长度：
         const goals = {
             "CS:APP": 12,
             "Blog功能开发": 3,
-            "视觉SLAM十四讲": 8,          // 长期更新设0
+            "视觉SLAM十四讲": 8,          
             "MERN Stack": 5,
             "嵌入式开发纪实": 0,
             "前端随想": 0,
@@ -256,15 +214,12 @@ app.post('/api/posts', verifyToken, async (req, res) => {
     try {
         const { title, summary, content, tags, series, status, createdAt } = req.body;
         
-        // 包含 summary 字段
         const newPost = new Post({ title, summary, content, tags, series, status });
-        
         if (createdAt) {
             newPost.createdAt = new Date(createdAt);
         }
 
-        const savedPost = await newPost.save(); // 存入数据库
-        console.log("📝 新文章已存入:", savedPost.title, "日期:", savedPost.createdAt);
+        const savedPost = await newPost.save();
         res.status(201).json(savedPost);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -276,29 +231,16 @@ app.put('/api/posts/:id', verifyToken, async (req, res) => {
     try {
         const { title, summary, content, series, tags, status, createdAt } = req.body; 
         
-        // 包含 summary 字段
         const updateData = { 
-            title, 
-            summary,
-            content, 
-            series, 
-            tags, 
-            status,
-            updatedAt: new Date()
+            title, summary, content, series, tags, status, updatedAt: new Date()
         };
-        
-        // 前端传了时间，就覆盖进去
         if (createdAt) {
             updateData.createdAt = new Date(createdAt);
         }
 
         const updatedPost = await Post.findByIdAndUpdate(
-            req.params.id, 
-            updateData, 
-            { returnDocument: 'after', timestamps: false } 
+            req.params.id, updateData, { returnDocument: 'after', timestamps: false } 
         );
-        
-        console.log("🔄 文章已更新:", updatedPost.title, "最终落库日期:", updatedPost.createdAt);
         res.json(updatedPost);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -310,7 +252,6 @@ app.delete('/api/posts/:id', verifyToken, async (req, res) => {
     try {
         const result = await Post.findByIdAndDelete(req.params.id);
         if (result) {
-            console.log("🗑️ 文章已成功删除，ID:", req.params.id);
             res.json({ message: "文章已成功删除" });
         } else {
             res.status(404).json({ message: "找不到该文章" });
@@ -320,7 +261,7 @@ app.delete('/api/posts/:id', verifyToken, async (req, res) => {
     }
 });
 
-// 上传图片
+// 上传图片 (动态获取 Host 防止跨域图片裂开)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/'); 
@@ -331,15 +272,15 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
-
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.post('/api/upload', verifyToken, upload.single('image'), (req, res) => {
   if (!req.file) {
       return res.status(400).json({ message: '上传失败' });
   }
-  
-  const imageUrl = `http://localhost:5000/uploads/${req.file.filename}`;
+  const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+  const host = req.get('host');
+  const imageUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
   res.json({ url: imageUrl });
 });
 
@@ -347,5 +288,4 @@ app.post('/api/upload', verifyToken, upload.single('image'), (req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`服务器正在端口 ${PORT} 上运行...`);
-    console.log(`本地 API 访问地址: http://localhost:${PORT}/api/posts`);
 });
