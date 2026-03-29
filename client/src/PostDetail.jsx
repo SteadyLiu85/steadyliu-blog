@@ -9,11 +9,8 @@ import rehypeHighlight from 'rehype-highlight'
 import 'katex/dist/katex.min.css'
 import 'highlight.js/styles/atom-one-dark.css' 
 
-// --- 工具函数：生成干净的 ID ---
 const slugify = (text) => text.toString().toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w\u4e00-\u9fa5-]+/g, '');
 
-// --- 工具函数：深度提取 React 子组件中的纯文本 ---
-// 完美解决 Markdown 标题中含有 `代码块` 或 **加粗** 时，生成的 ID 不匹配导致锚点失效的 Bug
 const extractText = (children) => {
   if (typeof children === 'string') return children;
   if (typeof children === 'number') return children.toString();
@@ -35,7 +32,6 @@ function PostDetail() {
     axios.get(`/api/posts/${id}`).then(res => setPost(res.data)).catch(err => console.error(err))
   }, [id])
 
-  // --- 解析 Markdown 生成侧边栏目录 ---
   const generateTOC = (text) => {
     const toc =[];
     text.split('\n').forEach((line) => {
@@ -49,18 +45,18 @@ function PostDetail() {
     return toc;
   };
 
-  // --- 全局滚动监听：进度计算 & 目录高亮 (Scroll Spy) ---
+  // --- 监听 ---
   useEffect(() => {
     let ticking = false;
 
     const handleScroll = () => {
-      // 1. 计算全局阅读进度百分比
+      // 1. 阅读进度百分比
       const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
       if (totalHeight > 0) {
         setScrollProgress((window.scrollY / totalHeight) * 100);
       }
 
-      // 2. 计算当前激活的目录项
+      // 2. 当前激活的目录
       if (!ticking) {
         window.requestAnimationFrame(() => {
           const headings = Array.from(document.querySelectorAll('article h2, article h3'));
@@ -98,7 +94,6 @@ function PostDetail() {
 
   const tocEntries = generateTOC(post.content);
 
-  // --- 终端风 ASCII 进度条渲染逻辑 ---
   const renderAsciiProgress = () => {
     const totalChars = 15; // 进度条总格数
     const filledChars = Math.min(totalChars, Math.max(0, Math.round((scrollProgress / 100) * totalChars)));
@@ -109,17 +104,16 @@ function PostDetail() {
   return (
     <div className="w-full pb-24 text-left relative">
       
-      {/* 悬浮进度徽章 / 回到顶部按钮 (终端风互动方块) */}
       {scrollProgress > 2 && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           className="fixed bottom-8 right-8 md:bottom-12 md:right-12 z-50 bg-theme-surface border-2 border-theme-border w-14 h-14 shadow-brutal hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-brutal-sm active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all font-mono group flex flex-col items-center justify-center cursor-pointer overflow-hidden"
         >
-          {/* 默认状态：显示百分比 */}
+          {/* 显示百分比 */}
           <div className="absolute inset-0 flex items-center justify-center text-theme-text-primary text-lg font-black group-hover:-translate-y-full transition-transform duration-300">
             {Math.round(scrollProgress)}<span className="text-[10px]">%</span>
           </div>
-          {/* 悬浮状态：显示向上箭头 */}
+          {/* 显示向上箭头 */}
           <div className="absolute inset-0 flex flex-col items-center justify-center text-theme-surface bg-theme-text-primary translate-y-full group-hover:translate-y-0 transition-transform duration-300">
             <span className="text-xl leading-none">↑</span>
             <span className="text-[8px] font-black uppercase tracking-widest mt-0.5">Top</span>
@@ -129,7 +123,7 @@ function PostDetail() {
 
       <div className="max-w-[1200px] mx-auto flex flex-col lg:flex-row gap-8 items-start relative">
         
-        {/* === 左侧：核心正文区 === */}
+        {/* === 左侧正文 === */}
         <article className="w-full lg:w-[75%] bg-theme-surface border-2 border-theme-border rounded-sm shadow-brutal min-h-screen flex flex-col">
           
           <header className="border-b-2 border-theme-border p-8 md:p-12 bg-theme-base/30">
@@ -212,11 +206,10 @@ function PostDetail() {
           </footer>
         </article>
 
-        {/* === 右侧：固定侧边栏 === */}
+        {/* === 右侧侧边栏 === */}
         <aside className="hidden lg:block w-[25%] sticky top-24">
           <div className="bg-theme-surface border-2 border-theme-border p-6 rounded-sm shadow-brutal-sm flex flex-col gap-6">
             
-            {/* 终端风格的阅读进度可视化 */}
             <div className="bg-theme-base border-2 border-theme-border p-4 shadow-inner">
               <div className="flex justify-between items-end mb-2">
                 <span className="font-mono text-[10px] font-black uppercase text-theme-text-secondary tracking-widest">
@@ -226,7 +219,6 @@ function PostDetail() {
                   {Math.round(scrollProgress)}%
                 </span>
               </div>
-              {/* ASCII 码组成的伪终端进度条 */}
               <div className="font-mono text-theme-accent text-sm tracking-[0.1em] whitespace-nowrap overflow-hidden">[{renderAsciiProgress()}]
               </div>
             </div>

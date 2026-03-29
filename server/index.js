@@ -261,26 +261,41 @@ app.delete('/api/posts/:id', verifyToken, async (req, res) => {
     }
 });
 
-// 上传图片 (动态获取 Host 防止跨域图片裂开)
+// 图片上传
+const fs = require('fs');
+
+// 1. 自动检查并创建 uploads 文件夹，防止刚部署时因为没文件夹而崩溃
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir);
+}
+
+// 2. 配置 Multer 存储规则
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/'); 
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname);
+    // 使用时间戳 + 随机数 + 原扩展名，解决中文文件名上传后乱码断链的问题
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, uniqueSuffix + ext);
   }
 });
 
 const upload = multer({ storage: storage });
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// 3. 开放静态文件访问目录
+app.use('/uploads', express.static(uploadDir));
+
+// 4. 接收上传并返回相对路径
 app.post('/api/upload', verifyToken, upload.single('image'), (req, res) => {
   if (!req.file) {
       return res.status(400).json({ message: '上传失败' });
   }
-  const protocol = req.headers['x-forwarded-proto'] || req.protocol;
-  const host = req.get('host');
-  const imageUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
+  
+  const imageUrl = `/uploads/${req.file.filename}`;
+  
   res.json({ url: imageUrl });
 });
 

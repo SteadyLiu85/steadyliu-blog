@@ -194,7 +194,7 @@
 ::-webkit-scrollbar-thumb {
   background: #1f2937; /* gray-800 */
   border-radius: 10px;
-  border: 2px solid #0a0a0c; /* 增加边距让滑块看起来更细 */
+  border: 2px solid #0a0a0c;
 }
 
 ::-webkit-scrollbar-thumb:hover {
