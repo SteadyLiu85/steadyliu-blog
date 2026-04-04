@@ -154,6 +154,7 @@ function App() {
       <main className="w-full mt-8 md:mt-12 px-4 md:px-8">
         <Routes>
           <Route path="/" element={<div className="max-w-4xl mx-auto"><PostList /></div>} />
+          <Route path="/blog/:page" element={<div className="max-w-4xl mx-auto"><PostList /></div>} />
           <Route path="/post/:id" element={<PostDetail />} />
           <Route path="/series" element={<div className="max-w-4xl mx-auto"><SeriesList /></div>} />
           <Route path="/tags" element={<div className="max-w-4xl mx-auto"><TagCloud /></div>} />
