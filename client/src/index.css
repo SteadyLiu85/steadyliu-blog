@@ -51,6 +51,11 @@
     background-image: radial-gradient(color-mix(in srgb, var(--color-border) 12%, transparent) 2px, transparent 2px);
     background-size: 24px 24px;
   }
+
+  pre code.hljs {
+    background-color: transparent !important;
+    padding: 0 !important;
+  }
 }
 
 @layer utilities {

@@ -7,11 +7,10 @@ function PostList() {
   const [posts, setPosts] = useState([])
   const[searchQuery, setSearchQuery] = useState('')
   
-  // === 分页逻辑核心 ===
   const { page } = useParams()
   const navigate = useNavigate()
   const currentPage = parseInt(page) || 1
-  const POSTS_PER_PAGE = 20 // 每页显示 20 篇
+  const POSTS_PER_PAGE = 15 // 每页显示篇数
 
   const fetchPosts = () => {
     axios.get('/api/posts')
@@ -62,7 +61,6 @@ function PostList() {
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
-      // 第一页 URL 保持清爽的 /，其余为 /blog/2, /blog/3
       navigate(newPage === 1 ? '/' : `/blog/${newPage}`)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }

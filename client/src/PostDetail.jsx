@@ -4,7 +4,6 @@ import axios from 'axios'
 import { ArrowLeft, Edit3 } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkMath from 'remark-math'
-// [新增] 引入 remarkGfm
 import remarkGfm from 'remark-gfm'
 import rehypeKatex from 'rehype-katex'
 import rehypeHighlight from 'rehype-highlight'
@@ -26,13 +25,13 @@ const extractText = (children) => {
 function PostDetail() {
   const { id } = useParams()
   const[post, setPost] = useState(null)
-  const [activeId, setActiveId] = useState('') 
+  const[activeId, setActiveId] = useState('') 
   const[scrollProgress, setScrollProgress] = useState(0)
   const navigate = useNavigate()
 
   useEffect(() => {
     axios.get(`/api/posts/${id}`).then(res => setPost(res.data)).catch(err => console.error(err))
-  }, [id])
+  },[id])
 
   const generateTOC = (text) => {
     const toc =[];
@@ -134,7 +133,6 @@ function PostDetail() {
 
           <div className="p-8 md:p-12 text-theme-text-primary font-medium flex-1 overflow-hidden">
             <ReactMarkdown 
-              // [新增] 引入 remarkGfm 处理表格
               remarkPlugins={[remarkMath, remarkGfm]} 
               rehypePlugins={[rehypeKatex, rehypeHighlight]}
               components={{
@@ -150,7 +148,7 @@ function PostDetail() {
                 ul: ({node, ...props}) => <ul className="list-square list-inside space-y-2 mb-6 text-[17px] ml-4 marker:text-theme-text-primary break-words" {...props} />,
                 ol: ({node, ...props}) => <ol className="list-decimal list-inside space-y-2 mb-6 text-[17px] ml-4 font-bold break-words" {...props} />,
                 
-                // [新增] 粗野风表格
+                // 表格组件
                 table: ({node, ...props}) => (
                   <div className="overflow-x-auto my-10 border-4 border-theme-border shadow-brutal rounded-sm">
                     <table className="w-full text-left border-collapse bg-theme-surface" {...props} />
@@ -162,18 +160,16 @@ function PostDetail() {
                 th: ({node, ...props}) => <th className="p-4 md:p-6 font-black text-theme-text-primary border-r-2 border-theme-border last:border-r-0 uppercase tracking-widest text-sm whitespace-nowrap" {...props} />,
                 td: ({node, ...props}) => <td className="p-4 md:p-6 font-bold border-r-2 border-theme-border last:border-r-0" {...props} />,
 
-                // [更新] 对行内短代码和多行代码块进行严格的样式剥离
+                // 行内短代码和多行代码区分
                 code: ({node, className, ...props}) => {
-                  // 如果有 language-xxx 类名，说明这是一个多行代码块里面的 code（已经被外层 pre 处理过背景了）
                   const match = /language-(\w+)/.exec(className || '');
                   if (!match) {
-                    // 没有 language 属性，说明它是行内短代码 (Inline Code) `test`
                     return <code className="font-mono text-[0.85em] bg-theme-base border-2 border-theme-border px-2 py-0.5 rounded-sm mx-1 font-black text-theme-accent shadow-[2px_2px_0_0_var(--color-border)] break-words" {...props} />
                   }
-                  // 多行代码块，交给 highlight.js 渲染
                   return <code className={className} {...props} />
                 },
 
+                // 多行代码块
                 pre: ({node, ...props}) => {
                   const childProps = props.children?.props;
                   const className = childProps?.className || '';
@@ -194,7 +190,10 @@ function PostDetail() {
                           <div className="w-2.5 h-2.5 rounded-full border-2 border-theme-border bg-[#27C93F]"></div>
                         </div>
                       </div>
-                      <pre className="p-6 bg-[#0E0F0E] text-gray-300 text-sm leading-relaxed overflow-x-auto" {...props} />
+                      <pre 
+                        className="p-6 bg-[#282C34] text-gray-300 text-[15px] leading-relaxed overflow-x-auto invert hue-rotate-180 dark:invert-0 dark:hue-rotate-0 transition-all duration-500" 
+                        {...props} 
+                      />
                     </div>
                   );
                 },
