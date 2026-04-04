@@ -164,7 +164,12 @@ function PostDetail() {
                 code: ({node, className, ...props}) => {
                   const match = /language-(\w+)/.exec(className || '');
                   if (!match) {
-                    return <code className="font-mono text-[0.85em] bg-theme-base border-2 border-theme-border px-2 py-0.5 rounded-sm mx-1 font-black text-theme-accent shadow-[2px_2px_0_0_var(--color-border)] break-words" {...props} />
+                    return (
+                      <code 
+                        className="font-mono text-[0.9em] bg-theme-base border border-theme-border px-1.5 py-0.5 rounded-sm font-bold text-theme-accent decoration-clone break-words" 
+                        {...props} 
+                      />
+                    );
                   }
                   return <code className={className} {...props} />
                 },
