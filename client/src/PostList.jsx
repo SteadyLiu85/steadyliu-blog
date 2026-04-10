@@ -6,10 +6,12 @@ import { Search, Edit3, Trash2, ArrowRight, ChevronLeft, ChevronRight } from 'lu
 function PostList() {
   const [posts, setPosts] = useState([])
   const[searchQuery, setSearchQuery] = useState('')
+  const [pageInput, setPageInput] = useState('1')
   
   const { page } = useParams()
   const navigate = useNavigate()
-  const currentPage = parseInt(page) || 1
+  const parsedPage = Number.parseInt(page || '1', 10)
+  const currentPage = Number.isNaN(parsedPage) || parsedPage < 1 ? 1 : parsedPage
   const POSTS_PER_PAGE = 15 // 每页显示篇数
 
   const fetchPosts = () => {
@@ -59,11 +61,44 @@ function PostList() {
     }
   }, [filteredPosts.length, currentPage, totalPages, navigate])
 
+  useEffect(() => {
+    setPageInput(String(currentPage))
+  }, [currentPage])
+
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
       navigate(newPage === 1 ? '/' : `/blog/${newPage}`)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
+  }
+
+  const handlePageJump = (e) => {
+    e.preventDefault()
+    const targetPage = Number.parseInt(pageInput, 10)
+
+    if (Number.isNaN(targetPage)) {
+      setPageInput(String(currentPage))
+      return
+    }
+
+    const clampedPage = Math.min(totalPages, Math.max(1, targetPage))
+    handlePageChange(clampedPage)
+  }
+
+  const getPageItems = () => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1)
+    }
+
+    if (currentPage <= 4) {
+      return [1, 2, 3, 4, 5, 'ellipsis-right', totalPages]
+    }
+
+    if (currentPage >= totalPages - 3) {
+      return [1, 'ellipsis-left', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
+    }
+
+    return [1, 'ellipsis-left', currentPage - 1, currentPage, currentPage + 1, 'ellipsis-right', totalPages]
   }
 
   return (
@@ -145,46 +180,81 @@ function PostList() {
 
       {/* === 粗野风分页器 === */}
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 md:gap-4 mt-16 border-t-2 border-theme-border border-dashed pt-12">
+        <div className="mt-16 border-t-2 border-theme-border border-dashed pt-12 space-y-5">
+          <div className="flex flex-col lg:flex-row justify-center items-center gap-3 md:gap-4">
           
-          <button 
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="flex items-center gap-1 px-4 py-2 border-2 border-theme-border bg-theme-surface font-black font-mono text-sm uppercase shadow-brutal-sm hover:shadow-brutal hover:-translate-y-0.5 active:active-brutal-sm transition-all disabled:opacity-30 disabled:pointer-events-none text-theme-text-primary"
-          >
-            <ChevronLeft size={16} strokeWidth={3} /> PREV
-          </button>
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="flex items-center gap-1 px-4 py-2 border-2 border-theme-border bg-theme-surface font-black font-mono text-sm uppercase shadow-brutal-sm hover:shadow-brutal hover:-translate-y-0.5 active:active-brutal-sm transition-all disabled:opacity-30 disabled:pointer-events-none text-theme-text-primary"
+            >
+              <ChevronLeft size={16} strokeWidth={3} /> PREV
+            </button>
 
-          <div className="flex gap-2">
-            {[...Array(totalPages)].map((_, i) => {
-              const pageNum = i + 1;
-              const isActive = pageNum === currentPage;
-              return (
-                <button
-                  key={pageNum}
-                  onClick={() => handlePageChange(pageNum)}
-                  className={`hidden md:flex w-10 h-10 items-center justify-center border-2 border-theme-border font-black font-mono text-sm shadow-brutal-sm hover:shadow-brutal hover:-translate-y-0.5 active:active-brutal-sm transition-all
-                    ${isActive ? 'bg-theme-accent text-white shadow-brutal -translate-y-0.5' : 'bg-theme-surface text-theme-text-primary'}
-                  `}
-                >
-                  {pageNum}
-                </button>
-              );
-            })}
-            
-            {/* 移动端只显示当前页数 */}
-            <div className="md:hidden flex items-center justify-center px-4 border-2 border-theme-border bg-theme-base font-black font-mono text-theme-text-primary">
-              {currentPage} / {totalPages}
+            <div className="flex gap-2 items-center">
+              {getPageItems().map((item, index) => {
+                if (typeof item !== 'number') {
+                  return (
+                    <span
+                      key={`${item}-${index}`}
+                      className="hidden md:flex w-10 h-10 items-center justify-center font-black font-mono text-sm text-theme-text-secondary"
+                    >
+                      ...
+                    </span>
+                  )
+                }
+
+                const isActive = item === currentPage
+                return (
+                  <button
+                    key={item}
+                    onClick={() => handlePageChange(item)}
+                    className={`hidden md:flex w-10 h-10 items-center justify-center border-2 border-theme-border font-black font-mono text-sm shadow-brutal-sm hover:shadow-brutal hover:-translate-y-0.5 active:active-brutal-sm transition-all ${
+                      isActive ? 'bg-theme-accent text-white shadow-brutal -translate-y-0.5' : 'bg-theme-surface text-theme-text-primary'
+                    }`}
+                  >
+                    {item}
+                  </button>
+                )
+              })}
+
+              {/* 移动端只显示当前页数 */}
+              <div className="md:hidden flex items-center justify-center px-4 border-2 border-theme-border bg-theme-base font-black font-mono text-theme-text-primary">
+                {currentPage} / {totalPages}
+              </div>
             </div>
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="flex items-center gap-1 px-4 py-2 border-2 border-theme-border bg-theme-surface font-black font-mono text-sm uppercase shadow-brutal-sm hover:shadow-brutal hover:-translate-y-0.5 active:active-brutal-sm transition-all disabled:opacity-30 disabled:pointer-events-none text-theme-text-primary"
+            >
+              NEXT <ChevronRight size={16} strokeWidth={3} />
+            </button>
           </div>
 
-          <button 
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="flex items-center gap-1 px-4 py-2 border-2 border-theme-border bg-theme-surface font-black font-mono text-sm uppercase shadow-brutal-sm hover:shadow-brutal hover:-translate-y-0.5 active:active-brutal-sm transition-all disabled:opacity-30 disabled:pointer-events-none text-theme-text-primary"
-          >
-            NEXT <ChevronRight size={16} strokeWidth={3} />
-          </button>
+          <form onSubmit={handlePageJump} className="flex flex-wrap justify-center items-center gap-3 font-mono">
+            <span className="text-xs font-bold uppercase tracking-widest text-theme-text-secondary">
+              Jump To Page
+            </span>
+            <input
+              type="number"
+              min="1"
+              max={totalPages}
+              value={pageInput}
+              onChange={(e) => setPageInput(e.target.value)}
+              className="w-24 border-2 border-theme-border bg-theme-surface px-3 py-2 text-center font-black text-theme-text-primary focus:outline-none shadow-brutal-sm focus:shadow-brutal focus:-translate-y-0.5 transition-all"
+            />
+            <button
+              type="submit"
+              className="border-2 border-theme-border bg-theme-text-primary px-4 py-2 font-black text-sm uppercase text-theme-surface shadow-brutal-sm hover:shadow-brutal hover:-translate-y-0.5 active:active-brutal-sm transition-all"
+            >
+              Go
+            </button>
+            <span className="text-xs font-bold uppercase tracking-widest text-theme-text-secondary">
+              Total {totalPages}
+            </span>
+          </form>
         </div>
       )}
 
