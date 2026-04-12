@@ -3,6 +3,11 @@ import { Link } from 'react-router-dom'
 import axios from 'axios'
 import { Hash } from 'lucide-react'
 
+const getStableRotation = (value) => {
+  const seed = value.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  return ((seed % 7) - 3).toFixed(2)
+}
+
 function TagCloud() {
   const[tagData, setTagData] = useState([])
   const containerRef = useRef(null)
@@ -116,7 +121,7 @@ function TagCloud() {
 
         {/* 标签渲染 (设置较高的 z-index 防止被线挡住交互) */}
         {tagData.map((tag, index) => {
-          const rotation = (Math.random() * 6 - 3).toFixed(2); 
+          const rotation = getStableRotation(tag._id)
           
           // 计算当前节点的透明度状态
           const isHovered = hoveredTag === tag._id;
